@@ -19,6 +19,38 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
+        /* Styles for the overlays and invite button */
+        .card-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 1rem;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+            pointer-events: none; /* Make overlay non-interactive by default */
+        }
+        .server-card:hover .card-overlay {
+            opacity: 1;
+            pointer-events: auto; /* Make overlay interactive on hover */
+        }
+        .invite-button {
+            background-color: #3b82f6; /* blue-600 */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .invite-button:hover {
+            background-color: #2563eb; /* blue-700 */
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -59,7 +91,6 @@
 
             try {
                 // --- Fetch User Data ---
-                // CORRECTED: Calling the /api/auth/user endpoint
                 const userResponse = await fetch('https://api.ulti-bot.com/api/auth/user', {
                     headers: { 'Authorization': `Bearer ${accessToken}` }
                 });
@@ -82,7 +113,6 @@
                 });
 
                 // --- Fetch Server Data ---
-                // CORRECTED: Calling the /api/auth/guilds endpoint
                 const guildsResponse = await fetch('https://api.ulti-bot.com/api/auth/guilds', {
                     headers: { 'Authorization': `Bearer ${accessToken}` }
                 });
@@ -98,19 +128,59 @@
                             ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`
                             : 'https://cdn.discordapp.com/embed/avatars/1.png';
                         
-                        const serverCard = `
-                            <a href="/dashboard/${guild.id}" class="server-card bg-gray-800 rounded-lg overflow-hidden block">
-                                <img src="${iconUrl}" alt="${guild.name} Icon" class="w-full h-32 object-cover">
-                                <div class="p-4">
-                                    <h3 class="font-bold text-lg truncate">${guild.name}</h3>
-                                    <p class="text-sm text-gray-400">Manager</p>
-                                </div>
-                            </a>
-                        `;
-                        serverListContainer.innerHTML += serverCard;
+                        let cardContent;
+                        const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=${user.clientId}&permissions=8&scope=bot%20applications.commands&guild_id=${guild.id}&disable_guild_select=true`;
+
+                        if (guild.botInGuild && guild.canManage) {
+                            cardContent = `
+                                <a href="/dashboard/${guild.id}" class="server-card bg-gray-800 rounded-lg overflow-hidden block relative">
+                                    <img src="${iconUrl}" alt="${guild.name} Icon" class="w-full h-32 object-cover">
+                                    <div class="p-4">
+                                        <h3 class="font-bold text-lg truncate">${guild.name}</h3>
+                                        <p class="text-sm text-green-400">Manage Server</p>
+                                    </div>
+                                </a>`;
+                        } else if (guild.botInGuild && !guild.canManage) {
+                            cardContent = `
+                                <div class="server-card bg-gray-800 rounded-lg overflow-hidden block relative">
+                                    <img src="${iconUrl}" alt="${guild.name} Icon" class="w-full h-32 object-cover">
+                                    <div class="p-4">
+                                        <h3 class="font-bold text-lg truncate">${guild.name}</h3>
+                                        <p class="text-sm text-gray-400">Member</p>
+                                    </div>
+                                    <div class="card-overlay" style="background-color: rgba(239, 68, 68, 0.7);">
+                                        <span class="font-bold text-white">No Permission To Modify</span>
+                                    </div>
+                                </div>`;
+                        } else if (!guild.botInGuild && guild.canManage) {
+                            cardContent = `
+                                <div class="server-card bg-gray-800 rounded-lg overflow-hidden block relative">
+                                    <img src="${iconUrl}" alt="${guild.name} Icon" class="w-full h-32 object-cover">
+                                    <div class="p-4">
+                                        <h3 class="font-bold text-lg truncate">${guild.name}</h3>
+                                        <p class="text-sm text-gray-400">Not a member</p>
+                                    </div>
+                                    <div class="card-overlay">
+                                        <a href="${inviteUrl.replace('YOUR_CLIENT_ID', user.clientId)}" target="_blank" rel="noopener noreferrer" class="invite-button">Invite to Server</a>
+                                    </div>
+                                </div>`;
+                        } else { // !guild.botInGuild && !guild.canManage
+                            cardContent = `
+                                <div class="server-card bg-gray-800 rounded-lg overflow-hidden block relative">
+                                    <img src="${iconUrl}" alt="${guild.name} Icon" class="w-full h-32 object-cover">
+                                    <div class="p-4">
+                                        <h3 class="font-bold text-lg truncate">${guild.name}</h3>
+                                        <p class="text-sm text-gray-400">Member</p>
+                                    </div>
+                                    <div class="card-overlay" style="background-color: rgba(17, 24, 39, 0.8);">
+                                        <span class="font-bold text-white">No Permission to Invite</span>
+                                    </div>
+                                </div>`;
+                        }
+                        serverListContainer.innerHTML += cardContent;
                     });
                 } else {
-                    serverListContainer.innerHTML = '<p class="col-span-full text-center text-gray-400">You do not have permission to manage any servers where Ulti-Bot is present.</p>';
+                    serverListContainer.innerHTML = '<p class="col-span-full text-center text-gray-400">You are not in any servers.</p>';
                 }
 
             } catch (error) {
