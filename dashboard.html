@@ -19,7 +19,6 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        /* Styles for the overlays and invite button */
         .card-overlay {
             position: absolute;
             top: 0;
@@ -34,14 +33,14 @@
             padding: 1rem;
             opacity: 0;
             transition: opacity 0.2s ease-in-out;
-            pointer-events: none; /* Make overlay non-interactive by default */
+            pointer-events: none;
         }
         .server-card:hover .card-overlay {
             opacity: 1;
-            pointer-events: auto; /* Make overlay interactive on hover */
+            pointer-events: auto;
         }
         .invite-button {
-            background-color: #3b82f6; /* blue-600 */
+            background-color: #3b82f6;
             color: white;
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
@@ -49,7 +48,7 @@
             transition: background-color 0.2s;
         }
         .invite-button:hover {
-            background-color: #2563eb; /* blue-700 */
+            background-color: #2563eb;
         }
     </style>
 </head>
@@ -67,7 +66,8 @@
 
     <!-- Main Content -->
     <main class="container mx-auto px-6 py-12">
-        <h1 class="text-4xl font-bold mb-8">Your Servers</h1>
+        <h1 class="text-4xl font-bold mb-2">Server Dashboard</h1>
+        <p class="text-gray-400 mb-8">Manage your servers or invite Ulti-Bot to new ones.</p>
         <div id="server-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <!-- Server cards will be loaded here -->
             <div id="loading-placeholder" class="text-center col-span-full text-gray-400">
@@ -140,28 +140,28 @@
                                         <p class="text-sm text-green-400">Manage Server</p>
                                     </div>
                                 </a>`;
-                        } else if (guild.botInGuild && !guild.canManage) {
-                            cardContent = `
-                                <div class="server-card bg-gray-800 rounded-lg overflow-hidden block relative">
-                                    <img src="${iconUrl}" alt="${guild.name} Icon" class="w-full h-32 object-cover">
-                                    <div class="p-4">
-                                        <h3 class="font-bold text-lg truncate">${guild.name}</h3>
-                                        <p class="text-sm text-gray-400">Member</p>
-                                    </div>
-                                    <div class="card-overlay" style="background-color: rgba(239, 68, 68, 0.7);">
-                                        <span class="font-bold text-white">No Permission To Modify</span>
-                                    </div>
-                                </div>`;
                         } else if (!guild.botInGuild && guild.canManage) {
                             cardContent = `
                                 <div class="server-card bg-gray-800 rounded-lg overflow-hidden block relative">
                                     <img src="${iconUrl}" alt="${guild.name} Icon" class="w-full h-32 object-cover">
                                     <div class="p-4">
                                         <h3 class="font-bold text-lg truncate">${guild.name}</h3>
-                                        <p class="text-sm text-gray-400">Not a member</p>
+                                        <p class="text-sm text-blue-400">Ready to Invite</p>
                                     </div>
                                     <div class="card-overlay">
-                                        <a href="${inviteUrl.replace('YOUR_CLIENT_ID', user.clientId)}" target="_blank" rel="noopener noreferrer" class="invite-button">Invite to Server</a>
+                                        <a href="${inviteUrl.replace('YOUR_CLIENT_ID', user.clientId)}" target="_blank" rel="noopener noreferrer" class="invite-button">Invite Ulti-Bot</a>
+                                    </div>
+                                </div>`;
+                        } else if (guild.botInGuild && !guild.canManage) {
+                            cardContent = `
+                                <div class="server-card bg-gray-800 rounded-lg overflow-hidden block relative">
+                                    <img src="${iconUrl}" alt="${guild.name} Icon" class="w-full h-32 object-cover">
+                                    <div class="p-4">
+                                        <h3 class="font-bold text-lg truncate">${guild.name}</h3>
+                                        <p class="text-sm text-gray-400">Permissions Needed</p>
+                                    </div>
+                                    <div class="card-overlay" style="background-color: rgba(239, 68, 68, 0.7);">
+                                        <span class="font-bold text-white">Lacks Modify Permissions</span>
                                     </div>
                                 </div>`;
                         } else { // !guild.botInGuild && !guild.canManage
@@ -170,10 +170,10 @@
                                     <img src="${iconUrl}" alt="${guild.name} Icon" class="w-full h-32 object-cover">
                                     <div class="p-4">
                                         <h3 class="font-bold text-lg truncate">${guild.name}</h3>
-                                        <p class="text-sm text-gray-400">Member</p>
+                                        <p class="text-sm text-gray-400">Permissions Needed</p>
                                     </div>
                                     <div class="card-overlay" style="background-color: rgba(17, 24, 39, 0.8);">
-                                        <span class="font-bold text-white">No Permission to Invite</span>
+                                        <span class="font-bold text-white">Lacks Invite Permissions</span>
                                     </div>
                                 </div>`;
                         }
