@@ -39,7 +39,7 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 p-10 overflow-y-auto">
+        <main id="main-content" class="flex-1 p-10 overflow-y-auto">
             <div id="server-header" class="flex items-center gap-4 mb-8">
                 <!-- Server icon and name will be loaded here -->
             </div>
@@ -78,8 +78,6 @@
     </div>
 
     <script>
-        // This script will handle fetching server details and populating the form.
-        // The logic for submitting the form will be added in the next step.
         document.addEventListener('DOMContentLoaded', async () => {
             const accessToken = localStorage.getItem('discord_access_token');
             if (!accessToken) {
@@ -87,22 +85,21 @@
                 return;
             }
 
-            // Get the server ID from the URL (e.g., /dashboard/12345)
             const guildId = window.location.pathname.split('/').pop();
             if (!guildId) {
-                // Redirect if no guild ID is found
                 window.location.href = 'https://www.ulti-bot.com/dashboard.html';
                 return;
             }
 
+            const mainContent = document.getElementById('main-content');
+
             try {
-                // Fetch all details for this specific server
                 const response = await fetch(`https://api.ulti-bot.com/api/guild/${guildId}/details`, {
                     headers: { 'Authorization': `Bearer ${accessToken}` }
                 });
 
                 if (!response.ok) {
-                    throw new Error('Could not fetch server details. You may not have permission.');
+                    throw new Error(`Could not fetch server details. Status: ${response.status}`);
                 }
 
                 const data = await response.json();
@@ -129,7 +126,6 @@
                 unverifiedRoleSelect.innerHTML = '<option value="">Select a role</option>';
                 verifiedRoleSelect.innerHTML = '<option value="">Select a role</option>';
                 roles.forEach(role => {
-                    // Don't include the @everyone role
                     if (role.id !== guild.id) {
                         const option = `<option value="${role.id}">${role.name}</option>`;
                         unverifiedRoleSelect.innerHTML += option;
@@ -139,8 +135,17 @@
 
             } catch (error) {
                 console.error('Error loading server dashboard:', error);
-                // Redirect on error
-                window.location.href = 'https://www.ulti-bot.com/dashboard.html';
+                // Instead of redirecting, show an error message on the page
+                mainContent.innerHTML = `
+                    <div class="text-center">
+                        <h1 class="text-4xl font-bold text-red-500">An Error Occurred</h1>
+                        <p class="text-gray-400 mt-4">Could not load server data. This could be because you don't have permission, or the API is down.</p>
+                        <p class="text-gray-500 text-sm mt-2">Error: ${error.message}</p>
+                        <a href="/dashboard.html" class="mt-6 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
+                            Back to Server List
+                        </a>
+                    </div>
+                `;
             }
         });
     </script>
