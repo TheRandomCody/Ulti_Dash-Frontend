@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Ulti-Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .server-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .server-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+    <!-- Header -->
+    <header class="bg-gray-800/50 backdrop-blur-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="https://www.ulti-bot.com/" class="text-2xl font-bold text-white">Ulti-Bot</a>
+            <div id="user-profile" class="flex items-center gap-4">
+                <!-- User info will be loaded here -->
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-12">
+        <h1 class="text-4xl font-bold mb-8">Your Servers</h1>
+        <div id="server-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Server cards will be loaded here -->
+            <div id="loading-placeholder" class="text-center col-span-full text-gray-400">
+                <p>Loading your servers...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // This script will fetch user and server data and populate the page.
+        document.addEventListener('DOMContentLoaded', async () => {
+            const userProfileContainer = document.getElementById('user-profile');
+            const serverListContainer = document.getElementById('server-list');
+            const loadingPlaceholder = document.getElementById('loading-placeholder');
+
+            // In a real app, the token would be stored securely (e.g., in an HttpOnly cookie)
+            // For now, we'll retrieve it from localStorage after the login callback.
+            const accessToken = localStorage.getItem('discord_access_token');
+            
+            if (!accessToken) {
+                // If no token, redirect to the full home page URL
+                window.location.href = 'https://www.ulti-bot.com/';
+                return;
+            }
+
+            try {
+                // --- Fetch User Data ---
+                const userResponse = await fetch('https://api.ulti-bot.com/api/user', {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                if (!userResponse.ok) throw new Error('Failed to fetch user data.');
+                const user = await userResponse.json();
+                
+                // Populate user profile in header
+                const avatarUrl = user.avatar 
+                    ? `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png`
+                    : 'https://cdn.discordapp.com/embed/avatars/0.png';
+                userProfileContainer.innerHTML = `
+                    <span class="font-semibold">${user.username}</span>
+                    <img src="${avatarUrl}" alt="User Avatar" class="w-10 h-10 rounded-full">
+                    <a href="#" id="logout-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-sm">Logout</a>
+                `;
+
+                // Add event listener for the new logout button
+                document.getElementById('logout-btn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.removeItem('discord_access_token');
+                    window.location.href = 'https://www.ulti-bot.com/';
+                });
+
+                // --- Fetch Server Data ---
+                const guildsResponse = await fetch('https://api.ulti-bot.com/api/guilds', {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                if (!guildsResponse.ok) throw new Error('Failed to fetch server data.');
+                const guilds = await guildsResponse.json();
+
+                loadingPlaceholder.style.display = 'none'; // Hide loading text
+                
+                // Populate server list
+                if (guilds.length > 0) {
+                    serverListContainer.innerHTML = ''; // Clear the loading text before adding cards
+                    guilds.forEach(guild => {
+                        const iconUrl = guild.icon
+                            ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`
+                            : 'https://cdn.discordapp.com/embed/avatars/1.png';
+                        
+                        // NOTE: The href is currently disabled to prevent errors. We will build the individual
+                        // server dashboard page in a future step.
+                        const serverCard = `
+                            <a href="#" class="server-card bg-gray-800 rounded-lg overflow-hidden block">
+                                <img src="${iconUrl}" alt="${guild.name} Icon" class="w-full h-32 object-cover">
+                                <div class="p-4">
+                                    <h3 class="font-bold text-lg truncate">${guild.name}</h3>
+                                    <p class="text-sm text-gray-400">${guild.canManage ? 'Manager' : 'Member'}</p>
+                                </div>
+                            </a>
+                        `;
+                        serverListContainer.innerHTML += serverCard;
+                    });
+                } else {
+                    serverListContainer.innerHTML = '<p class="col-span-full text-center text-gray-400">You are not in any servers with Ulti-Bot, or you do not have permission to manage any.</p>';
+                }
+
+            } catch (error) {
+                console.error('Dashboard Error:', error);
+                loadingPlaceholder.textContent = 'Failed to load dashboard. Please try logging in again.';
+                // In case of error (e.g., expired token), clear it and redirect
+                localStorage.removeItem('discord_access_token');
+                setTimeout(() => window.location.href = 'https://www.ulti-bot.com/', 2000);
+            }
+        });
+    </script>
+</body>
+</html>
