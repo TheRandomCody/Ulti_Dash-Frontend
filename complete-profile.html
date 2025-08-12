@@ -54,31 +54,27 @@
     </div>
 
     <script>
-        // This script handles submitting the form data to your backend API.
         const profileForm = document.getElementById('profile-form');
         const errorMessage = document.getElementById('error-message');
 
+        // Get the Discord ID from the URL's query parameters.
+        const urlParams = new URLSearchParams(window.location.search);
+        const discordId = urlParams.get('discordId');
+
+        // If there's no ID in the URL, we can't proceed.
+        if (!discordId) {
+            document.querySelector('form').style.display = 'none';
+            document.querySelector('h1').textContent = 'Error';
+            document.querySelector('p').textContent = 'No user ID was provided. Please try logging in again.';
+        }
+
         profileForm.addEventListener('submit', async (event) => {
-            event.preventDefault(); // Prevent the form from reloading the page
+            event.preventDefault();
             errorMessage.textContent = '';
-
-            // --- IMPORTANT ---
-            // In a real application, you would get the user's Discord ID from a secure session
-            // or a JSON Web Token (JWT) that was created during the login callback.
-            // For now, we will need to find a way to pass the ID to this page.
-            // A simple (but not secure for production) way is to use localStorage after login.
-            // We will need to adjust the backend to handle this.
-            // For now, let's assume we can get it. This part will need to be updated.
-            const discordId = localStorage.getItem('discordId'); // This is a placeholder for now
-
-            if (!discordId) {
-                errorMessage.textContent = 'Could not identify user. Please try logging in again.';
-                return;
-            }
 
             const formData = new FormData(profileForm);
             const data = {
-                discordId: discordId,
+                discordId: discordId, // Use the ID from the URL
                 fullName: formData.get('fullName'),
                 birthday: formData.get('birthday'),
                 location: formData.get('location'),
@@ -95,7 +91,7 @@
 
                 if (response.ok) {
                     // If successful, redirect the user to their dashboard
-                    window.location.href = 'https://www.ulti-bot.com/dashboard';
+                    window.location.href = 'https://www.ulti-bot.com/dashboard.html'; // We'll create this page next
                 } else {
                     const errorData = await response.json();
                     errorMessage.textContent = errorData.error || 'An unknown error occurred.';
