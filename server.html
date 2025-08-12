@@ -19,6 +19,28 @@
             background-color: #374151; /* gray-700 */
             color: white;
         }
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 1000;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .toast.success {
+            background-color: #10B981; /* green-500 */
+        }
+        .toast.error {
+            background-color: #EF4444; /* red-500 */
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -69,13 +91,16 @@
                                     <option>Loading roles...</option>
                                 </select>
                             </div>
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Save Changes</button>
+                            <button type="submit" id="save-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Save Changes</button>
                         </form>
                     </div>
                 </section>
             </div>
         </main>
     </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
@@ -92,6 +117,8 @@
             }
 
             const mainContent = document.getElementById('main-content');
+            const verificationForm = document.getElementById('verification-form');
+            const saveBtn = document.getElementById('save-btn');
 
             try {
                 const response = await fetch(`https://api.ulti-bot.com/api/guild/${guildId}/details`, {
@@ -103,7 +130,7 @@
                 }
 
                 const data = await response.json();
-                const { guild, channels, roles } = data;
+                const { guild, channels, roles, savedSettings } = data;
 
                 // Populate server header
                 const serverHeader = document.getElementById('server-header');
@@ -133,21 +160,64 @@
                     }
                 });
 
+                // Pre-select saved settings if they exist
+                if (savedSettings) {
+                    verChannelSelect.value = savedSettings.verificationChannelId || '';
+                    unverifiedRoleSelect.value = savedSettings.unverifiedRoleId || '';
+                    verifiedRoleSelect.value = savedSettings.verifiedRoleId || '';
+                }
+
             } catch (error) {
                 console.error('Error loading server dashboard:', error);
-                // Instead of redirecting, show an error message on the page
-                mainContent.innerHTML = `
-                    <div class="text-center">
-                        <h1 class="text-4xl font-bold text-red-500">An Error Occurred</h1>
-                        <p class="text-gray-400 mt-4">Could not load server data. This could be because you don't have permission, or the API is down.</p>
-                        <p class="text-gray-500 text-sm mt-2">Error: ${error.message}</p>
-                        <a href="/dashboard.html" class="mt-6 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
-                            Back to Server List
-                        </a>
-                    </div>
-                `;
+                mainContent.innerHTML = `<div class="text-center"><h1 class="text-4xl font-bold text-red-500">An Error Occurred</h1><p class="text-gray-400 mt-4">Could not load server data.</p><p class="text-gray-500 text-sm mt-2">Error: ${error.message}</p><a href="/dashboard.html" class="mt-6 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Back to Server List</a></div>`;
             }
+
+            // Handle form submission
+            verificationForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Saving...';
+
+                const formData = new FormData(verificationForm);
+                const payload = {
+                    guildId: guildId,
+                    verificationChannelId: formData.get('verificationChannelId'),
+                    unverifiedRoleId: formData.get('unverifiedRoleId'),
+                    verifiedRoleId: formData.get('verifiedRoleId')
+                };
+
+                try {
+                    const response = await fetch('https://api.ulti-bot.com/api/settings', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${accessToken}`
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to save settings.');
+                    }
+                    showToast('Settings saved successfully!', 'success');
+                } catch (error) {
+                    console.error('Save settings error:', error);
+                    showToast('Error saving settings.', 'error');
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Save Changes';
+                }
+            });
         });
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
     </script>
 </body>
 </html>
