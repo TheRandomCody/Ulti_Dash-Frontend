@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div id="profile-stats" class="flex flex-wrap gap-4 mt-4 text-sm">
                         <div class="bg-gray-700 p-2 rounded-md"><strong>Age:</strong> <span id="age-stat">N/A</span></div>
                         <div class="bg-gray-700 p-2 rounded-md"><strong>Bans in Network:</strong> <span id="bans-stat">N/A</span></div>
-                        <div class="bg-gray-700 p-2 rounded-md"><strong>Verification Level:</strong> <span id="verification-stat">N/A</span></div>
+                        <div class="bg-gray-700 p-2 rounded-md"><strong>Verification Status:</strong> <span id="verification-stat">N/A</span></div>
                     </div>
                 </div>
                 <div class="flex flex-col gap-2">
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.error('Verification Error:', error);
                 alert('Could not start the verification process. Please try again later.');
                 verifyBtn.disabled = false;
-                verifyBtn.textContent = 'Increase Verification';
+                verifyBtn.textContent = 'Verify Your Account';
             }
         });
 
