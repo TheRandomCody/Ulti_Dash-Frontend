@@ -67,7 +67,7 @@
                 <!-- Staff Settings -->
                 <section id="staff-settings" class="settings-panel hidden">
                     <h2 class="text-3xl font-bold mb-6">Staff Settings</h2>
-                    <form id="staff-form" class="bg-gray-800 p-8 rounded-lg max-w-3xl space-y-8">
+                    <form id="staff-form" class="bg-gray-800 p-8 rounded-lg max-w-4xl space-y-8">
                         <div>
                             <label class="flex items-center cursor-pointer">
                                 <span class="text-lg font-medium text-white mr-4">Enable Custom Staff Hierarchy</span>
@@ -202,41 +202,52 @@
                 showToast('You can only have a maximum of 5 staff teams.', 'error');
                 return;
             }
-            const teamId = `team-${Date.now()}`;
+            const teamId = teamData ? teamData.teamId : `team-${Date.now()}`;
             const teamTemplate = document.createElement('div');
             teamTemplate.id = teamId;
-            teamTemplate.className = "staff-team bg-gray-700 p-4 rounded-lg border border-gray-600";
+            teamTemplate.className = "staff-team bg-gray-700 p-6 rounded-lg border border-gray-600";
+            teamTemplate.dataset.teamId = teamId;
             
-            const roleOptions = serverRoles
-                .sort((a, b) => b.position - a.position)
-                .map(r => `<option value="${r.id}" data-color="${r.color}" data-icon="${r.icon}" data-emoji="${r.unicode_emoji}">${r.name}</option>`)
-                .join('');
+            const roleOptions = serverRoles.sort((a, b) => b.position - a.position).map(r => `<option value="${r.id}" data-color="${r.color}" data-icon="${r.icon}" data-emoji="${r.unicode_emoji}">${r.name}</option>`).join('');
+
+            const createPermissionRow = (action) => `
+                <div class="flex items-center justify-between">
+                    <span class="capitalize">${action}</span>
+                    <div class="flex gap-4">
+                        <label><input type="radio" name="perm-${action}-${teamId}" value="full"> Full</label>
+                        <label><input type="radio" name="perm-${action}-${teamId}" value="auth"> Auth</label>
+                        <label><input type="radio" name="perm-${action}-${teamId}" value="none" checked> None</label>
+                    </div>
+                </div>
+            `;
 
             teamTemplate.innerHTML = `
                 <div class="flex justify-between items-center mb-4">
                     <input type="text" placeholder="Team Name" class="team-name text-xl font-bold bg-transparent border-b border-gray-500" value="${teamData ? teamData.teamName : ''}">
                     <button type="button" class="text-red-500 hover:text-red-400 font-bold remove-team-btn">Remove</button>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-2">Team Roles (Max 5)</label>
                         <div class="role-bubbles-container bg-gray-800 p-2 rounded-md min-h-[40px]"></div>
-                        <select class="add-role-select w-full p-2 mt-2 bg-gray-800 rounded-md">
-                            <option value="">Add a role...</option>
-                            ${roleOptions}
-                        </select>
+                        <select class="add-role-select w-full p-2 mt-2 bg-gray-800 rounded-md"><option value="">Add a role...</option>${roleOptions}</select>
                     </div>
-                    <div>
+                    <div class="space-y-2">
                         <label class="block text-sm font-medium text-gray-300 mb-2">Punishment Rules</label>
-                        <select class="team-permissions w-full p-2 bg-gray-800 rounded-md">
-                            <option value="full">Full Permissions</option>
-                            <option value="auth">Requires Authorization</option>
-                            <option value="none">No Permissions</option>
-                        </select>
+                        ${createPermissionRow('ban')}
+                        ${createPermissionRow('kick')}
+                        ${createPermissionRow('mute')}
+                        ${createPermissionRow('warn')}
+                        ${createPermissionRow('blacklist')}
                     </div>
+                </div>
+                <div class="mt-4 border-t border-gray-600 pt-4">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Can Authorize Requests For:</label>
+                    <div class="can-authorize-container grid grid-cols-2 gap-2"></div>
                 </div>
             `;
             teamsContainer.appendChild(teamTemplate);
+            updateAllAuthCheckboxes();
 
             const bubblesContainer = teamTemplate.querySelector('.role-bubbles-container');
             const addRoleSelect = teamTemplate.querySelector('.add-role-select');
@@ -284,7 +295,10 @@
             });
 
             if (teamData) {
-                teamTemplate.querySelector('.team-permissions').value = teamData.permissions || 'full';
+                Object.entries(teamData.permissions).forEach(([action, value]) => {
+                    const radio = teamTemplate.querySelector(`input[name="perm-${action}-${teamId}"][value="${value}"]`);
+                    if (radio) radio.checked = true;
+                });
                 teamData.roles.forEach(roleId => {
                     const option = addRoleSelect.querySelector(`option[value="${roleId}"]`);
                     if (option) {
@@ -294,7 +308,35 @@
                 });
             }
 
-            teamTemplate.querySelector('.remove-team-btn').addEventListener('click', () => teamTemplate.remove());
+            teamTemplate.querySelector('.remove-team-btn').addEventListener('click', () => {
+                teamTemplate.remove();
+                updateAllAuthCheckboxes();
+            });
+        }
+
+        function updateAllAuthCheckboxes() {
+            const allTeams = Array.from(document.querySelectorAll('.staff-team'));
+            allTeams.forEach(currentTeam => {
+                const authContainer = currentTeam.querySelector('.can-authorize-container');
+                const currentTeamId = currentTeam.dataset.teamId;
+                authContainer.innerHTML = '';
+
+                allTeams.forEach(otherTeam => {
+                    const otherTeamId = otherTeam.dataset.teamId;
+                    if (currentTeamId === otherTeamId) return;
+
+                    const otherTeamName = otherTeam.querySelector('.team-name').value || 'Unnamed Team';
+                    const checkboxId = `auth-${currentTeamId}-for-${otherTeamId}`;
+                    
+                    const checkboxHtml = `
+                        <label for="${checkboxId}" class="flex items-center">
+                            <input type="checkbox" id="${checkboxId}" data-authorizes-team-id="${otherTeamId}" class="form-checkbox h-4 w-4 text-blue-500">
+                            <span class="ml-2">${otherTeamName}</span>
+                        </label>
+                    `;
+                    authContainer.insertAdjacentHTML('beforeend', checkboxHtml);
+                });
+            });
         }
 
         function isColorDark(hexColor) {
@@ -362,10 +404,20 @@
 
                 const teams = [];
                 document.querySelectorAll('.staff-team').forEach(teamEl => {
-                    const teamName = teamEl.querySelector('.team-name').value;
-                    const roles = Array.from(teamEl.querySelectorAll('.role-bubble')).map(bubble => bubble.dataset.roleId);
-                    const permissions = teamEl.querySelector('.team-permissions').value;
-                    teams.push({ teamName, roles, permissions });
+                    const teamId = teamEl.dataset.teamId;
+                    const permissions = {};
+                    ['ban', 'kick', 'mute', 'warn', 'blacklist'].forEach(action => {
+                        permissions[action] = teamEl.querySelector(`input[name="perm-${action}-${teamId}"]:checked`).value;
+                    });
+                    const canAuthorize = Array.from(teamEl.querySelectorAll('.can-authorize-container input:checked')).map(cb => cb.dataset.authorizesTeamId);
+                    
+                    teams.push({
+                        teamId,
+                        teamName: teamEl.querySelector('.team-name').value,
+                        roles: Array.from(teamEl.querySelectorAll('.role-bubble')).map(b => b.dataset.roleId),
+                        permissions,
+                        canAuthorize
+                    });
                 });
 
                 const payload = {
