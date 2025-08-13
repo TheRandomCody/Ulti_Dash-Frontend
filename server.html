@@ -16,6 +16,9 @@
         .toast.success { background-color: #10B981; }
         .toast.error { background-color: #EF4444; }
         input:checked + .dot { transform: translateX(100%); }
+        .role-bubble { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; margin-right: 0.5rem; margin-bottom: 0.5rem; cursor: pointer; border: 1px solid transparent; }
+        .role-bubble:hover { border-color: #ef4444; }
+        .role-bubble img, .role-bubble .emoji { width: 1rem; height: 1rem; margin-right: 0.5rem; }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -65,7 +68,6 @@
                 <section id="staff-settings" class="settings-panel hidden">
                     <h2 class="text-3xl font-bold mb-6">Staff Settings</h2>
                     <form id="staff-form" class="bg-gray-800 p-8 rounded-lg max-w-3xl space-y-8">
-                        <!-- Master Toggle -->
                         <div>
                             <label class="flex items-center cursor-pointer">
                                 <span class="text-lg font-medium text-white mr-4">Enable Custom Staff Hierarchy</span>
@@ -75,22 +77,21 @@
                                     <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition peer-checked:translate-x-full peer-checked:bg-blue-500"></div>
                                 </div>
                             </label>
+                            <p class="text-sm text-gray-400 mt-2">When disabled, all commands will fall back to default Discord permissions.</p>
                         </div>
                         <div class="border-t border-gray-700"></div>
-                        <!-- Server Owner Role -->
                         <div>
                             <label for="owner-role" class="block text-lg font-medium text-gray-300 mb-2">Server Owner Role</label>
                             <select id="owner-role" name="ownerRoleId" class="w-full p-2 bg-gray-700 rounded-md"></select>
+                            <p class="text-sm text-gray-400 mt-2">Designate the role for the ultimate authority in the server.</p>
                         </div>
                         <div class="border-t border-gray-700"></div>
-                        <!-- Staff Teams Container -->
                         <div>
                             <h3 class="text-2xl font-bold mb-4">Staff Teams</h3>
                             <div id="staff-teams-container" class="space-y-6"></div>
                             <button type="button" id="add-team-btn" class="mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Add Staff Team</button>
                         </div>
                         <div class="border-t border-gray-700"></div>
-                        <!-- Emergency Override -->
                         <div>
                              <label class="flex items-center cursor-pointer">
                                 <span class="text-lg font-medium text-white mr-4">Enable Emergency Override Command</span>
@@ -100,12 +101,14 @@
                                     <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition peer-checked:translate-x-full peer-checked:bg-blue-500"></div>
                                 </div>
                             </label>
+                            <p class="text-sm text-gray-400 mt-2">Allows staff to force a punishment at the cost of their role, creating a moderation case.</p>
                         </div>
                         <div class="border-t border-gray-700 pt-6">
                             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg">Save All Staff Settings</button>
                         </div>
                     </form>
                 </section>
+                
                 <!-- Other hidden panels -->
                 <section id="moderation-settings" class="settings-panel hidden">
                     <h2 class="text-3xl font-bold mb-6">Moderation Settings</h2>
@@ -203,15 +206,25 @@
             const teamTemplate = document.createElement('div');
             teamTemplate.id = teamId;
             teamTemplate.className = "staff-team bg-gray-700 p-4 rounded-lg border border-gray-600";
+            
+            const roleOptions = serverRoles
+                .sort((a, b) => b.position - a.position)
+                .map(r => `<option value="${r.id}" data-color="${r.color}" data-icon="${r.icon}" data-emoji="${r.unicode_emoji}">${r.name}</option>`)
+                .join('');
+
             teamTemplate.innerHTML = `
                 <div class="flex justify-between items-center mb-4">
-                    <input type="text" placeholder="Team Name" class="team-name text-xl font-bold bg-transparent border-b border-gray-500 focus:outline-none focus:border-blue-400" value="${teamData ? teamData.teamName : ''}">
+                    <input type="text" placeholder="Team Name" class="team-name text-xl font-bold bg-transparent border-b border-gray-500" value="${teamData ? teamData.teamName : ''}">
                     <button type="button" class="text-red-500 hover:text-red-400 font-bold remove-team-btn">Remove</button>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-2">Team Roles (Max 5)</label>
-                        <select multiple class="team-roles w-full h-32 p-2 bg-gray-800 rounded-md">${serverRoles.map(r => `<option value="${r.id}">${r.name}</option>`).join('')}</select>
+                        <div class="role-bubbles-container bg-gray-800 p-2 rounded-md min-h-[40px]"></div>
+                        <select class="add-role-select w-full p-2 mt-2 bg-gray-800 rounded-md">
+                            <option value="">Add a role...</option>
+                            ${roleOptions}
+                        </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-2">Punishment Rules</label>
@@ -224,18 +237,75 @@
                 </div>
             `;
             teamsContainer.appendChild(teamTemplate);
-            teamTemplate.querySelector('.remove-team-btn').addEventListener('click', () => teamTemplate.remove());
+
+            const bubblesContainer = teamTemplate.querySelector('.role-bubbles-container');
+            const addRoleSelect = teamTemplate.querySelector('.add-role-select');
+
+            addRoleSelect.addEventListener('change', (e) => {
+                const selectedOption = e.target.options[e.target.selectedIndex];
+                const roleId = selectedOption.value;
+                if (!roleId) return;
+
+                if (bubblesContainer.children.length >= 5) {
+                    showToast('A team can only have a maximum of 5 roles.', 'error');
+                    e.target.value = '';
+                    return;
+                }
+                
+                if (bubblesContainer.querySelector(`[data-role-id="${roleId}"]`)) {
+                    e.target.value = '';
+                    return;
+                }
+
+                const roleName = selectedOption.textContent;
+                const color = selectedOption.dataset.color || '0';
+                const icon = selectedOption.dataset.icon;
+                const emoji = selectedOption.dataset.emoji;
+
+                const bubble = document.createElement('div');
+                bubble.className = 'role-bubble';
+                bubble.dataset.roleId = roleId;
+                
+                const hexColor = `#${parseInt(color).toString(16).padStart(6, '0')}`;
+                bubble.style.backgroundColor = hexColor;
+                bubble.style.color = isColorDark(hexColor) ? 'white' : 'black';
+
+                let iconHtml = '';
+                if (icon && icon !== 'null') {
+                    iconHtml = `<img src="https://cdn.discordapp.com/role-icons/${roleId}/${icon}.png" class="role-icon">`;
+                } else if (emoji && emoji !== 'null') {
+                    iconHtml = `<span class="emoji">${emoji}</span>`;
+                }
+
+                bubble.innerHTML = `${iconHtml}<span>${roleName}</span>`;
+                bubble.addEventListener('click', () => bubble.remove());
+                bubblesContainer.appendChild(bubble);
+                e.target.value = '';
+            });
 
             if (teamData) {
                 teamTemplate.querySelector('.team-permissions').value = teamData.permissions || 'full';
-                const roleSelect = teamTemplate.querySelector('.team-roles');
                 teamData.roles.forEach(roleId => {
-                    const option = roleSelect.querySelector(`option[value="${roleId}"]`);
-                    if (option) option.selected = true;
+                    const option = addRoleSelect.querySelector(`option[value="${roleId}"]`);
+                    if (option) {
+                        option.selected = true;
+                        addRoleSelect.dispatchEvent(new Event('change'));
+                    }
                 });
             }
+
+            teamTemplate.querySelector('.remove-team-btn').addEventListener('click', () => teamTemplate.remove());
         }
 
+        function isColorDark(hexColor) {
+            const rgb = parseInt(hexColor.substring(1), 16);
+            const r = (rgb >> 16) & 0xff;
+            const g = (rgb >> 8) & 0xff;
+            const b = (rgb >> 0) & 0xff;
+            const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            return luma < 128;
+        }
+        
         function setupEventListeners() {
             const sidebarNav = document.getElementById('sidebar-nav');
             const settingsPanels = document.querySelectorAll('.settings-panel');
@@ -291,23 +361,12 @@
                 saveBtn.disabled = true; saveBtn.textContent = 'Saving...';
 
                 const teams = [];
-                let roleLimitExceeded = false;
                 document.querySelectorAll('.staff-team').forEach(teamEl => {
                     const teamName = teamEl.querySelector('.team-name').value;
-                    const selectedRoles = Array.from(teamEl.querySelector('.team-roles').selectedOptions);
-                    if (selectedRoles.length > 5) {
-                        showToast(`Team "${teamName || 'Unnamed Team'}" has more than 5 roles. Please select 5 or fewer.`, 'error');
-                        roleLimitExceeded = true;
-                    }
-                    const roles = selectedRoles.map(opt => opt.value);
+                    const roles = Array.from(teamEl.querySelectorAll('.role-bubble')).map(bubble => bubble.dataset.roleId);
                     const permissions = teamEl.querySelector('.team-permissions').value;
                     teams.push({ teamName, roles, permissions });
                 });
-                
-                if (roleLimitExceeded) {
-                    saveBtn.disabled = false; saveBtn.textContent = 'Save All Staff Settings';
-                    return;
-                }
 
                 const payload = {
                     guildId,
