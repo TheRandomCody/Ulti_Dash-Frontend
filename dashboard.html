@@ -24,21 +24,30 @@
     <header class="bg-gray-800/50 backdrop-blur-sm sticky top-0 z-50">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="https://www.ulti-bot.com/" class="text-2xl font-bold text-white">Ulti-Bot</a>
-            <div id="user-profile" class="flex items-center gap-4">
-                <!-- User info will be loaded by JavaScript -->
+            <div id="header-user-profile" class="flex items-center gap-4">
+                <!-- Small user info for the header will be loaded by JavaScript -->
             </div>
         </nav>
     </header>
 
     <!-- Main Content -->
     <main class="container mx-auto px-6 py-12">
-        <h1 class="text-4xl font-bold mb-2">Server Dashboard</h1>
-        <p class="text-gray-400 mb-8">Manage your servers or invite Ulti-Bot to new ones.</p>
-        <div id="server-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <div id="loading-placeholder" class="text-center col-span-full text-gray-400">
-                <p>Loading your servers...</p>
+        <!-- User Profile Section -->
+        <section id="user-profile-section" class="mb-12 bg-gray-800 p-6 rounded-lg">
+            <!-- Full user profile will be loaded here -->
+        </section>
+
+        <div class="border-t border-gray-700 my-8"></div>
+
+        <!-- Server List Section -->
+        <section id="server-list-section">
+            <h1 class="text-4xl font-bold mb-8">Your Servers</h1>
+            <div id="server-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div id="loading-placeholder" class="text-center col-span-full text-gray-400">
+                    <p>Loading your servers...</p>
+                </div>
             </div>
-        </div>
+        </section>
     </main>
 
     <script src="/js/dashboard.js"></script>
