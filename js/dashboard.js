@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
 
                 const data = await response.json();
-                // FIXED: Redirect the user to the full URL provided by the backend
+                // Redirect the user to the full URL provided by the backend
                 window.location.href = data.url;
 
             } catch (error) {
