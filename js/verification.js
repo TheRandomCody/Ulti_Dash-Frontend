@@ -4,7 +4,19 @@ let serverRoles = [];
 let serverChannels = [];
 
 // --- UTILITY FUNCTIONS ---
-function showToast(message, type = 'success') { /* ... */ }
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    if (!toast) {
+        const toastEl = document.createElement('div');
+        toastEl.id = 'toast';
+        document.body.appendChild(toastEl);
+    }
+    toast.textContent = message;
+    toast.className = `toast ${type} show`;
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
 
 // --- INITIALIZATION ---
 async function initializeVerificationPage() {
@@ -35,12 +47,16 @@ async function initializeVerificationPage() {
 
     } catch (error) {
         console.error('Error loading page:', error);
-        mainContent.innerHTML = `<div class="text-center">...error message html...</div>`;
+        mainContent.innerHTML = `<div class="text-center"><h1 class="text-4xl font-bold text-red-500">An Error Occurred</h1><p class="text-gray-400 mt-4">Could not load server data.</p><p class="text-gray-500 text-sm mt-2">Error: ${error.message}</p><a href="/dashboard.html" class="mt-6 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Back to Server List</a></div>`;
     }
 }
 
 // --- UI POPULATION & EVENT LISTENERS ---
-function populateHeader(guild) { /* ... */ }
+function populateHeader(guild) {
+    const serverHeader = document.getElementById('server-header');
+    const iconUrl = guild.icon ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png` : 'https://cdn.discordapp.com/embed/avatars/1.png';
+    serverHeader.innerHTML = `<img src="${iconUrl}" alt="Server Icon" class="w-16 h-16 rounded-full"><h1 class="text-4xl font-bold">${guild.name}</h1>`;
+}
 
 function populateVerificationPanel(settings) {
     const panel = document.getElementById('verification-settings');
@@ -127,7 +143,13 @@ function populateVerificationPanel(settings) {
     }
 }
 
-function updateSidebarLinks(guildId) { /* ... */ }
+function updateSidebarLinks(guildId) {
+    const sidebarNav = document.getElementById('sidebar-nav');
+    sidebarNav.querySelectorAll('a').forEach(link => {
+        const baseHref = link.getAttribute('href').split('#')[0];
+        link.href = `${baseHref}#${guildId}`;
+    });
+}
 
 function setupEventListeners() {
     const verificationForm = document.getElementById('verification-form');
