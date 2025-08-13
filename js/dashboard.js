@@ -69,6 +69,37 @@ document.addEventListener('DOMContentLoaded', async () => {
             ` : ''}
         `;
 
+        // Add event listener for the verification button
+        document.getElementById('verify-btn').addEventListener('click', async () => {
+            const verifyBtn = document.getElementById('verify-btn');
+            verifyBtn.disabled = true;
+            verifyBtn.textContent = 'Creating Session...';
+
+            try {
+                const response = await fetch('https://api.ulti-bot.com/stripe/create-verification-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({ discordId: user.id })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create Stripe session.');
+                }
+
+                const data = await response.json();
+                window.location.href = data.url;
+
+            } catch (error) {
+                console.error('Verification Error:', error);
+                alert('Could not start the verification process. Please try again later.');
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = 'Increase Verification';
+            }
+        });
+
         // --- Asynchronously Fetch and Populate Profile Details ---
         try {
             const profileDetailsResponse = await fetch('https://api.ulti-bot.com/api/profile/details', { headers: { 'Authorization': `Bearer ${accessToken}` } });
