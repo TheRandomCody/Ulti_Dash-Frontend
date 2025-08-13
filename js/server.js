@@ -53,6 +53,8 @@ async function initializeDashboard() {
         populateVerificationPanel(savedSettings ? savedSettings.verification : null);
         populateStaffPanel(savedSettings ? savedSettings.staff : null);
         populateModerationPanel(savedSettings ? savedSettings.moderation : null);
+        populateLoggingPanel(savedSettings ? savedSettings.logging : null);
+        populateAutoRolePanel(savedSettings ? savedSettings.autoRole : null);
 
         setupEventListeners();
 
@@ -63,61 +65,106 @@ async function initializeDashboard() {
 }
 
 // --- UI POPULATION FUNCTIONS ---
-function populateHeader(guild) {
-    const serverHeader = document.getElementById('server-header');
-    const iconUrl = guild.icon ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png` : 'https://cdn.discordapp.com/embed/avatars/1.png';
-    serverHeader.innerHTML = `<img src="${iconUrl}" alt="Server Icon" class="w-16 h-16 rounded-full"><h1 class="text-4xl font-bold">${guild.name}</h1>`;
-}
-
-function populateVerificationPanel(settings) {
-    const panel = document.getElementById('verification-settings');
-    const createOptions = (elements, nameField) => `<option value="">Select...</option>` + elements.map(el => `<option value="${el.id}">${el[nameField]}</option>`).join('');
-    panel.innerHTML = `
-        <h2 class="text-3xl font-bold mb-6">Verification Settings</h2>
-        <div class="bg-gray-800 p-8 rounded-lg max-w-2xl">
-            <form id="verification-form">
-                <div class="mb-4">
-                    <label for="verification-channel" class="block text-sm font-medium text-gray-300 mb-2">Verification Channel</label>
-                    <select id="verification-channel" name="verificationChannelId" class="w-full p-2 bg-gray-700 rounded-md">${createOptions(serverChannels, 'name')}</select>
-                </div>
-                <div class="mb-4">
-                    <label for="unverified-role" class="block text-sm font-medium text-gray-300 mb-2">Unverified Role</label>
-                    <select id="unverified-role" name="unverifiedRoleId" class="w-full p-2 bg-gray-700 rounded-md">${createOptions(serverRoles, 'name')}</select>
-                </div>
-                <div class="mb-6">
-                    <label for="verified-role" class="block text-sm font-medium text-gray-300 mb-2">Verified Role</label>
-                    <select id="verified-role" name="verifiedRoleId" class="w-full p-2 bg-gray-700 rounded-md">${createOptions(serverRoles, 'name')}</select>
-                </div>
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Save Changes</button>
-            </form>
-        </div>`;
-    if (settings) {
-        panel.querySelector('#verification-channel').value = settings.verificationChannelId || '';
-        panel.querySelector('#unverified-role').value = settings.unverifiedRoleId || '';
-        panel.querySelector('#verified-role').value = settings.verifiedRoleId || '';
-    }
-}
-
-function populateStaffPanel(settings) {
-    // ... logic to build and populate the staff form ...
-}
-
-function populateModerationPanel(settings) {
-    const panel = document.getElementById('moderation-settings');
-    panel.innerHTML = `
-        <h2 class="text-3xl font-bold mb-6">Moderation Settings</h2>
-        <form id="moderation-form" class="bg-gray-800 p-8 rounded-lg max-w-4xl space-y-8">
-            <!-- Join Gate, Content Filtering, Warning System sections will be built here -->
-            <div class="border-t border-gray-700 pt-6">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg">Save Moderation Settings</button>
-            </div>
-        </form>`;
-    // ... logic to populate the moderation form with settings ...
-}
+function populateHeader(guild) { /* ... */ }
+function populateVerificationPanel(settings) { /* ... */ }
+function populateStaffPanel(settings) { /* ... */ }
+function populateModerationPanel(settings) { /* ... */ }
+function populateLoggingPanel(settings) { /* ... */ }
+function populateAutoRolePanel(settings) { /* ... */ }
 
 // --- EVENT LISTENERS ---
 function setupEventListeners() {
-    // ... all event listener setup logic will go here ...
+    const sidebarNav = document.getElementById('sidebar-nav');
+    const settingsPanels = document.querySelectorAll('.settings-panel');
+    const accessToken = localStorage.getItem('discord_access_token');
+    const guildId = window.location.hash.substring(1);
+
+    // FIXED: Correct tab switching logic
+    sidebarNav.addEventListener('click', (e) => {
+        if (e.target.tagName === 'A' && e.target.getAttribute('href').startsWith('#')) {
+            e.preventDefault();
+            const targetId = e.target.getAttribute('href').substring(1);
+
+            // Update active link in sidebar
+            sidebarNav.querySelectorAll('a').forEach(link => link.classList.remove('active'));
+            e.target.classList.add('active');
+
+            // Show the correct settings panel and hide others
+            settingsPanels.forEach(panel => {
+                if (panel.id === `${targetId}-settings`) {
+                    panel.classList.remove('hidden');
+                } else {
+                    panel.classList.add('hidden');
+                }
+            });
+        }
+    });
+
+    // Delegate event listeners for all forms within the settings content area
+    document.getElementById('settings-content').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const saveBtn = form.querySelector('button[type="submit"]');
+        if (!saveBtn) return;
+
+        saveBtn.disabled = true; saveBtn.textContent = 'Saving...';
+        
+        let endpoint = '';
+        let payload = { guildId, settings: {} };
+
+        if (form.id === 'verification-form') {
+            endpoint = 'verification';
+            payload.settings = {
+                verificationChannelId: form.verificationChannelId.value,
+                unverifiedRoleId: form.unverifiedRoleId.value,
+                verifiedRoleId: form.verifiedRoleId.value
+            };
+        } else if (form.id === 'moderation-form') {
+            endpoint = 'moderation';
+            // ... logic to gather moderation settings ...
+        } else if (form.id === 'logging-form') {
+            endpoint = 'logging';
+            // ... logic to gather logging settings ...
+        } else if (form.id === 'autorole-form') {
+            endpoint = 'autorole';
+            // ... logic to gather autorole settings ...
+        } else if (form.id === 'staff-form') {
+            endpoint = 'staff';
+            // ... logic to gather staff settings ...
+        }
+
+        if (!endpoint) {
+            saveBtn.disabled = false; saveBtn.textContent = 'Save Changes';
+            return;
+        }
+
+        try {
+            const response = await fetch(`https://api.ulti-bot.com/api/settings/${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) throw new Error(`Failed to save ${endpoint} settings.`);
+            showToast(`${endpoint.charAt(0).toUpperCase() + endpoint.slice(1)} settings saved!`, 'success');
+        } catch (error) {
+            showToast(`Error saving ${endpoint} settings.`, 'error');
+        } finally {
+            saveBtn.disabled = false; 
+            // Reset button text based on which form it is
+            if(form.id === 'staff-form' || form.id === 'moderation-form') {
+                saveBtn.textContent = 'Save All Settings';
+            } else {
+                 saveBtn.textContent = 'Save Changes';
+            }
+        }
+    });
+
+    // Add other specific event listeners (like for adding staff teams) here
+    const addTeamBtn = document.getElementById('add-team-btn');
+    if(addTeamBtn) addTeamBtn.addEventListener('click', () => addTeam());
+    
+    const addTierBtn = document.getElementById('add-tier-btn');
+    if(addTierBtn) addTierBtn.addEventListener('click', () => addWarningTier());
 }
 
 // Run the initialization function when the page loads
