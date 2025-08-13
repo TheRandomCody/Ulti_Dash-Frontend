@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Role Settings | Ulti-Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar-link.active, .sidebar-link:hover { background-color: #374151; color: white; }
+        .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: 0.5rem; color: white; opacity: 0; transform: translateY(20px); transition: opacity 0.3s, transform 0.3s; z-index: 1000; }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.success { background-color: #10B981; }
+        .toast.error { background-color: #EF4444; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gray-800 p-6 flex flex-col">
+            <a href="/dashboard.html" class="text-2xl font-bold text-white mb-8">Ulti-Bot Dashboard</a>
+            <nav id="sidebar-nav" class="flex flex-col gap-2">
+                <a href="/verification.html" class="sidebar-link text-gray-300 p-3 rounded-lg">Verification</a>
+                <a href="/staff.html" class="sidebar-link text-gray-300 p-3 rounded-lg">Staff Settings</a>
+                <a href="/moderation.html" class="sidebar-link text-gray-300 p-3 rounded-lg">Moderation</a>
+                <a href="/logging.html" class="sidebar-link text-gray-300 p-3 rounded-lg">Logging</a>
+                <a href="/autorole.html" class="sidebar-link active text-gray-300 p-3 rounded-lg">Auto Role</a>
+            </nav>
+            <div class="mt-auto">
+                <a href="/dashboard.html" class="text-sm text-gray-400 hover:text-white transition-colors">&larr; Back to Server List</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main id="main-content" class="flex-1 p-10 overflow-y-auto">
+            <div id="server-header" class="flex items-center gap-4 mb-8"></div>
+            <div id="settings-content">
+                <section id="autorole-settings" class="settings-panel"></section>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <script src="/js/autorole.js"></script>
+</body>
+</html>
