@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </div>
                 <div class="flex flex-col gap-2">
-                    <button id="verify-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg w-full">Increase Verification</button>
+                    <button id="verify-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg w-full">Verify Your Account</button>
                     <button class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg w-full">Find Servers</button>
                 </div>
             </div>
