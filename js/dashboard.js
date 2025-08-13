@@ -79,8 +79,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             ` : ''}
         `;
 
-        // Add event listener for the new verification button
+        // Add event listener for the verification button
         document.getElementById('verify-btn').addEventListener('click', async () => {
+            const verifyBtn = document.getElementById('verify-btn');
+            verifyBtn.disabled = true;
+            verifyBtn.textContent = 'Creating Session...';
+
             try {
                 const response = await fetch('https://api.ulti-bot.com/stripe/create-verification-session', {
                     method: 'POST',
@@ -96,15 +100,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
 
                 const data = await response.json();
-                // Redirect the user to the Stripe verification flow
-                window.location.href = `https://verify.stripe.com/start/${data.clientSecret}`;
+                // FIXED: Redirect the user to the full URL provided by the backend
+                window.location.href = data.url;
 
             } catch (error) {
                 console.error('Verification Error:', error);
                 alert('Could not start the verification process. Please try again later.');
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = 'Increase Verification';
             }
         });
-
 
         // --- Populate Server List ---
         loadingPlaceholder.style.display = 'none';
