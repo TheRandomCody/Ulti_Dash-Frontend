@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
+        // --- Fetch User Data ---
         const userResponse = await fetch('https://api.ulti-bot.com/api/auth/user', {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
@@ -34,6 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.location.href = 'https://www.ulti-bot.com/';
         });
 
+        // --- Fetch Server Data ---
         const guildsResponse = await fetch('https://api.ulti-bot.com/api/auth/guilds', {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
