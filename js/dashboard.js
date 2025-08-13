@@ -53,7 +53,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=${user.clientId}&permissions=8&scope=bot%20applications.commands&guild_id=${guild.id}&disable_guild_select=true`;
 
                 if (guild.botInGuild && guild.canManage) {
-                    // FIXED: This link now correctly points to verification.html
                     cardContent = `
                         <a href="/verification.html#${guild.id}" class="server-card bg-gray-800 rounded-lg overflow-hidden block relative">
                             <img src="${iconUrl}" alt="${guild.name} Icon" class="w-full h-32 object-cover">
@@ -63,7 +62,41 @@ document.addEventListener('DOMContentLoaded', async () => {
                             </div>
                         </a>`;
                 } else if (!guild.botInGuild && guild.canManage) {
-                    // ... other card types
+                    cardContent = `
+                        <div class="server-card bg-gray-800 rounded-lg overflow-hidden block relative">
+                            <img src="${iconUrl}" alt="${guild.name} Icon" class="w-full h-32 object-cover">
+                            <div class="p-4">
+                                <h3 class="font-bold text-lg truncate">${guild.name}</h3>
+                                <p class="text-sm text-blue-400">Ready to Invite</p>
+                            </div>
+                            <div class="card-overlay">
+                                <a href="${inviteUrl}" target="_blank" rel="noopener noreferrer" class="invite-button">Invite Ulti-Bot</a>
+                            </div>
+                        </div>`;
+                } else if (guild.botInGuild && !guild.canManage) {
+                    cardContent = `
+                        <div class="server-card bg-gray-800 rounded-lg overflow-hidden block relative">
+                            <img src="${iconUrl}" alt="${guild.name} Icon" class="w-full h-32 object-cover">
+                            <div class="p-4">
+                                <h3 class="font-bold text-lg truncate">${guild.name}</h3>
+                                <p class="text-sm text-gray-400">Permissions Needed</p>
+                            </div>
+                            <div class="card-overlay" style="background-color: rgba(239, 68, 68, 0.7);">
+                                <span class="font-bold text-white">Lacks Modify Permissions</span>
+                            </div>
+                        </div>`;
+                } else { // !guild.botInGuild && !guild.canManage
+                    cardContent = `
+                        <div class="server-card bg-gray-800 rounded-lg overflow-hidden block relative">
+                            <img src="${iconUrl}" alt="${guild.name} Icon" class="w-full h-32 object-cover">
+                            <div class="p-4">
+                                <h3 class="font-bold text-lg truncate">${guild.name}</h3>
+                                <p class="text-sm text-gray-400">Permissions Needed</p>
+                            </div>
+                            <div class="card-overlay" style="background-color: rgba(17, 24, 39, 0.8);">
+                                <span class="font-bold text-white">Lacks Invite Permissions</span>
+                            </div>
+                        </div>`;
                 }
                 serverListContainer.innerHTML += cardContent;
             });
