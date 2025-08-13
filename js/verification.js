@@ -42,6 +42,7 @@ async function initializeVerificationPage() {
 
         populateHeader(guild);
         populateVerificationPanel(savedSettings ? savedSettings.verification : null);
+        updateSidebarLinks(guildId); // <-- FIXED: Update sidebar links with the server ID
         setupEventListeners();
 
     } catch (error) {
@@ -84,6 +85,15 @@ function populateVerificationPanel(settings) {
         panel.querySelector('#unverified-role').value = settings.unverifiedRoleId || '';
         panel.querySelector('#verified-role').value = settings.verifiedRoleId || '';
     }
+}
+
+// NEW: Function to update sidebar links
+function updateSidebarLinks(guildId) {
+    const sidebarNav = document.getElementById('sidebar-nav');
+    sidebarNav.querySelectorAll('a').forEach(link => {
+        const baseHref = link.getAttribute('href').split('#')[0];
+        link.href = `${baseHref}#${guildId}`;
+    });
 }
 
 // --- EVENT LISTENERS ---
