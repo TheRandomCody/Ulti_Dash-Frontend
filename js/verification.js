@@ -104,6 +104,15 @@ function populateVerificationPanel(settings) {
             </div>
             <div class="border-t border-gray-700"></div>
             <div>
+                <h3 class="text-2xl font-bold mb-4">Verification Embed</h3>
+                <div>
+                    <label for="verification-embed-message" class="block text-sm font-medium text-gray-300 mb-2">Embed Message</label>
+                    <textarea id="verification-embed-message" name="verificationEmbedMessage" rows="3" class="w-full bg-gray-700 rounded-md p-2"></textarea>
+                </div>
+                <button type="button" id="post-embed-btn" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Post/Update Embed</button>
+            </div>
+            <div class="border-t border-gray-700"></div>
+            <div>
                 <h3 class="text-2xl font-bold mb-4">Age Gate</h3>
                 <div class="space-y-4">
                     <label class="flex items-center"><input type="checkbox" id="age-gate-toggle" name="ageGateEnabled" class="form-checkbox h-5 w-5"> <span class="ml-2">Enable Age Gate</span></label>
@@ -134,6 +143,7 @@ function populateVerificationPanel(settings) {
         panel.querySelector('#verification-channel').value = settings.verificationChannelId || '';
         panel.querySelector('#unverified-role').value = settings.unverifiedRoleId || '';
         panel.querySelector('#verified-role').value = settings.verifiedRoleId || '';
+        panel.querySelector('#verification-embed-message').value = settings.verificationEmbedMessage || 'Please verify your account to access the rest of the server.';
         if (settings.ageGate) {
             panel.querySelector('#age-gate-toggle').checked = settings.ageGate.isEnabled || false;
             panel.querySelector('#min-age').value = settings.ageGate.minAge || 13;
@@ -153,6 +163,7 @@ function updateSidebarLinks(guildId) {
 
 function setupEventListeners() {
     const verificationForm = document.getElementById('verification-form');
+    const postEmbedBtn = document.getElementById('post-embed-btn');
     const accessToken = localStorage.getItem('discord_access_token');
     const guildId = window.location.hash.substring(1);
 
@@ -169,6 +180,7 @@ function setupEventListeners() {
                 verificationChannelId: formData.get('verificationChannelId'),
                 unverifiedRoleId: formData.get('unverifiedRoleId'),
                 verifiedRoleId: formData.get('verifiedRoleId'),
+                verificationEmbedMessage: formData.get('verificationEmbedMessage'),
                 ageGate: {
                     isEnabled: document.getElementById('age-gate-toggle').checked,
                     minAge: formData.get('minAge'),
@@ -189,6 +201,35 @@ function setupEventListeners() {
             showToast('Error saving settings.', 'error');
         } finally {
             saveBtn.disabled = false; saveBtn.textContent = 'Save Verification Settings';
+        }
+    });
+
+    postEmbedBtn.addEventListener('click', async () => {
+        postEmbedBtn.disabled = true;
+        postEmbedBtn.textContent = 'Posting...';
+        try {
+            // First, trigger a save to ensure the embed message is up-to-date
+            const saveEvent = new Event('submit', { bubbles: true, cancelable: true });
+            verificationForm.dispatchEvent(saveEvent);
+            
+            // A short delay to allow the save to process
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            const response = await fetch('https://api.ulti-bot.com/api/settings/verification/embed', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({ guildId })
+            });
+            if (!response.ok) throw new Error('Failed to post embed.');
+            showToast('Embed posted/updated successfully!', 'success');
+        } catch (error) {
+            showToast('Error posting embed. Make sure a verification channel is selected and settings are saved.', 'error');
+        } finally {
+            postEmbedBtn.disabled = false;
+            postEmbedBtn.textContent = 'Post/Update Embed';
         }
     });
 }
