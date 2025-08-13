@@ -50,7 +50,7 @@ async function initializeStaffPage() {
 
         populateHeader(guild);
         populateStaffPanel(savedSettings ? savedSettings.staff : null);
-        updateSidebarLinks(guildId); // This function is now defined
+        updateSidebarLinks(guildId);
         setupEventListeners();
 
     } catch (error) {
@@ -260,8 +260,7 @@ function updateAllAuthCheckboxes() {
         });
     });
 }
-        
-// FIXED: Added the missing function
+
 function updateSidebarLinks(guildId) {
     const sidebarNav = document.getElementById('sidebar-nav');
     sidebarNav.querySelectorAll('a').forEach(link => {

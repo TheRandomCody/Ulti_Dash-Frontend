@@ -1,7 +1,6 @@
 // js/moderation.js
 
 let serverRoles = [];
-let serverChannels = [];
 
 // --- UTILITY FUNCTIONS ---
 function showToast(message, type = 'success') {
