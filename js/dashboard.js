@@ -61,11 +61,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div class="flex flex-wrap gap-4 mt-4 text-sm">
                         <div class="bg-gray-700 p-2 rounded-md"><strong>Age:</strong> ${age}</div>
                         <div class="bg-gray-700 p-2 rounded-md"><strong>Bans in Network:</strong> ${profileDetails.banCount}</div>
-                        <div class="bg-gray-700 p-2 rounded-md"><strong>Verification Level:</strong> ${profileDetails.isVerified ? 'Verified' : 'Unverified'}</div>
+                        <div class="bg-gray-700 p-2 rounded-md"><strong>Verification Level:</strong> ${profileDetails.isStripeVerified ? 'Verified' : 'Unverified'}</div>
                     </div>
                 </div>
                 <div class="flex flex-col gap-2">
-                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg w-full">Increase Verification</button>
+                    <button id="verify-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg w-full">Increase Verification</button>
                     <button class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg w-full">Find Servers</button>
                 </div>
             </div>
@@ -78,6 +78,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
             ` : ''}
         `;
+
+        // Add event listener for the new verification button
+        document.getElementById('verify-btn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('https://api.ulti-bot.com/stripe/create-verification-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({ discordId: user.id })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create Stripe session.');
+                }
+
+                const data = await response.json();
+                // Redirect the user to the Stripe verification flow
+                window.location.href = `https://verify.stripe.com/start/${data.clientSecret}`;
+
+            } catch (error) {
+                console.error('Verification Error:', error);
+                alert('Could not start the verification process. Please try again later.');
+            }
+        });
+
 
         // --- Populate Server List ---
         loadingPlaceholder.style.display = 'none';
