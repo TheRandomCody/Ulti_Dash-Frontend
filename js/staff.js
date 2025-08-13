@@ -50,7 +50,7 @@ async function initializeStaffPage() {
 
         populateHeader(guild);
         populateStaffPanel(savedSettings ? savedSettings.staff : null);
-        updateSidebarLinks(guildId);
+        updateSidebarLinks(guildId); // This function is now defined
         setupEventListeners();
 
     } catch (error) {
@@ -261,25 +261,20 @@ function updateAllAuthCheckboxes() {
     });
 }
         
-function setupEventListeners() {
+// FIXED: Added the missing function
+function updateSidebarLinks(guildId) {
     const sidebarNav = document.getElementById('sidebar-nav');
-    const settingsPanels = document.querySelectorAll('.settings-panel');
-    const addTeamBtn = document.getElementById('add-team-btn');
+    sidebarNav.querySelectorAll('a').forEach(link => {
+        const baseHref = link.getAttribute('href').split('#')[0];
+        link.href = `${baseHref}#${guildId}`;
+    });
+}
+
+function setupEventListeners() {
     const staffForm = document.getElementById('staff-form');
+    const addTeamBtn = document.getElementById('add-team-btn');
     const accessToken = localStorage.getItem('discord_access_token');
     const guildId = window.location.hash.substring(1);
-
-    sidebarNav.addEventListener('click', (e) => {
-        if (e.target.tagName === 'A' && e.target.getAttribute('href').startsWith('#')) {
-            e.preventDefault();
-            const targetId = e.target.getAttribute('href').substring(1);
-            sidebarNav.querySelectorAll('a').forEach(link => link.classList.remove('active'));
-            e.target.classList.add('active');
-            settingsPanels.forEach(panel => {
-                panel.classList.toggle('hidden', panel.id !== `${targetId}-settings`);
-            });
-        }
-    });
 
     addTeamBtn.addEventListener('click', () => addTeam());
 
