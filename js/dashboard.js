@@ -14,19 +14,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-        // --- Fetch All Data in Parallel ---
-        const [userResponse, profileDetailsResponse, guildsResponse] = await Promise.all([
+        // --- Fetch Essential Data First ---
+        const [userResponse, guildsResponse] = await Promise.all([
             fetch('https://api.ulti-bot.com/api/auth/user', { headers: { 'Authorization': `Bearer ${accessToken}` } }),
-            fetch('https://api.ulti-bot.com/api/profile/details', { headers: { 'Authorization': `Bearer ${accessToken}` } }),
             fetch('https://api.ulti-bot.com/api/auth/guilds', { headers: { 'Authorization': `Bearer ${accessToken}` } })
         ]);
 
-        if (!userResponse.ok || !profileDetailsResponse.ok || !guildsResponse.ok) {
-            throw new Error('Failed to fetch required data.');
+        if (!userResponse.ok || !guildsResponse.ok) {
+            throw new Error('Failed to fetch essential user or server data.');
         }
 
         const user = await userResponse.json();
-        const profileDetails = await profileDetailsResponse.json();
         const guilds = await guildsResponse.json();
         
         // --- Populate Header ---
@@ -42,26 +40,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.location.href = 'https://www.ulti-bot.com/';
         });
 
-        // --- Populate Main Profile Section ---
-        let age = 'Not Set';
-        if (profileDetails.birthday) {
-            const birthDate = new Date(profileDetails.birthday);
-            const ageDifMs = Date.now() - birthDate.getTime();
-            const ageDate = new Date(ageDifMs);
-            age = Math.abs(ageDate.getUTCFullYear() - 1970);
-        }
+        // --- Populate Main Profile Section (with placeholders) ---
         const ownedGuilds = guilds.filter(g => g.owner);
-
         mainUserProfile.innerHTML = `
             <div class="flex flex-col md:flex-row items-center gap-6">
                 <img src="${avatarUrl}" alt="User Avatar" class="w-32 h-32 rounded-full border-4 border-gray-700">
                 <div class="flex-1">
                     <h2 class="text-3xl font-bold">${user.global_name || user.username}</h2>
                     <p class="text-gray-400">@${user.username} (${user.id})</p>
-                    <div class="flex flex-wrap gap-4 mt-4 text-sm">
-                        <div class="bg-gray-700 p-2 rounded-md"><strong>Age:</strong> ${age}</div>
-                        <div class="bg-gray-700 p-2 rounded-md"><strong>Bans in Network:</strong> ${profileDetails.banCount}</div>
-                        <div class="bg-gray-700 p-2 rounded-md"><strong>Verification Level:</strong> ${profileDetails.isStripeVerified ? 'Verified' : 'Unverified'}</div>
+                    <div id="profile-stats" class="flex flex-wrap gap-4 mt-4 text-sm">
+                        <div class="bg-gray-700 p-2 rounded-md"><strong>Age:</strong> <span id="age-stat">N/A</span></div>
+                        <div class="bg-gray-700 p-2 rounded-md"><strong>Bans in Network:</strong> <span id="bans-stat">N/A</span></div>
+                        <div class="bg-gray-700 p-2 rounded-md"><strong>Verification Level:</strong> <span id="verification-stat">N/A</span></div>
                     </div>
                 </div>
                 <div class="flex flex-col gap-2">
@@ -79,37 +69,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             ` : ''}
         `;
 
-        // Add event listener for the verification button
-        document.getElementById('verify-btn').addEventListener('click', async () => {
-            const verifyBtn = document.getElementById('verify-btn');
-            verifyBtn.disabled = true;
-            verifyBtn.textContent = 'Creating Session...';
-
-            try {
-                const response = await fetch('https://api.ulti-bot.com/stripe/create-verification-session', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`
-                    },
-                    body: JSON.stringify({ discordId: user.id })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to create Stripe session.');
+        // --- Asynchronously Fetch and Populate Profile Details ---
+        try {
+            const profileDetailsResponse = await fetch('https://api.ulti-bot.com/api/profile/details', { headers: { 'Authorization': `Bearer ${accessToken}` } });
+            if (profileDetailsResponse.ok) {
+                const profileDetails = await profileDetailsResponse.json();
+                let age = 'Not Set';
+                if (profileDetails.birthday) {
+                    const birthDate = new Date(profileDetails.birthday);
+                    const ageDifMs = Date.now() - birthDate.getTime();
+                    const ageDate = new Date(ageDifMs);
+                    age = Math.abs(ageDate.getUTCFullYear() - 1970);
                 }
-
-                const data = await response.json();
-                // Redirect the user to the full URL provided by the backend
-                window.location.href = data.url;
-
-            } catch (error) {
-                console.error('Verification Error:', error);
-                alert('Could not start the verification process. Please try again later.');
-                verifyBtn.disabled = false;
-                verifyBtn.textContent = 'Increase Verification';
+                document.getElementById('age-stat').textContent = age;
+                document.getElementById('bans-stat').textContent = profileDetails.banCount;
+                document.getElementById('verification-stat').textContent = profileDetails.isStripeVerified ? 'Verified' : 'Unverified';
+            } else {
+                 console.error('Failed to fetch profile details, but continuing with page load.');
             }
-        });
+        } catch (profileError) {
+            console.error('Error fetching profile details:', profileError);
+        }
 
         // --- Populate Server List ---
         loadingPlaceholder.style.display = 'none';
