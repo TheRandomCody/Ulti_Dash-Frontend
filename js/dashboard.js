@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         if (!userResponse.ok) throw new Error('Failed to fetch user data.');
-        const user = await userResponse.json();
+        const user = await userResponse.json(); // user object now contains clientId
         
         const avatarUrl = user.avatar 
             ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
@@ -52,7 +52,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     : 'https://cdn.discordapp.com/embed/avatars/1.png';
                 
                 let cardContent;
-                const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=${process.env.CLIENT_ID}&permissions=8&scope=bot%20applications.commands&guild_id=${guild.id}&disable_guild_select=true`;
+                // FIXED: Use the clientId from the user object to build the invite URL
+                const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=${user.clientId}&permissions=8&scope=bot%20applications.commands&guild_id=${guild.id}&disable_guild_select=true`;
 
                 if (guild.botInGuild && guild.canManage) {
                     cardContent = `
