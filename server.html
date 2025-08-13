@@ -15,6 +15,11 @@
         .toast.show { opacity: 1; transform: translateY(0); }
         .toast.success { background-color: #10B981; }
         .toast.error { background-color: #EF4444; }
+        /* Style for custom toggle switches */
+        input:checked ~ .dot {
+            transform: translateX(100%);
+            background-color: #3b82f6; /* blue-500 */
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -43,7 +48,21 @@
                 <section id="verification-settings" class="settings-panel">
                     <h2 class="text-3xl font-bold mb-6">Verification Settings</h2>
                     <div class="bg-gray-800 p-8 rounded-lg max-w-2xl">
-                        <form id="verification-form"><!-- ... form content ... --></form>
+                        <form id="verification-form">
+                            <div class="mb-4">
+                                <label for="verification-channel" class="block text-sm font-medium text-gray-300 mb-2">Verification Channel</label>
+                                <select id="verification-channel" name="verificationChannelId" class="w-full p-2 bg-gray-700 rounded-md"></select>
+                            </div>
+                            <div class="mb-4">
+                                <label for="unverified-role" class="block text-sm font-medium text-gray-300 mb-2">Unverified Role</label>
+                                <select id="unverified-role" name="unverifiedRoleId" class="w-full p-2 bg-gray-700 rounded-md"></select>
+                            </div>
+                            <div class="mb-6">
+                                <label for="verified-role" class="block text-sm font-medium text-gray-300 mb-2">Verified Role</label>
+                                <select id="verified-role" name="verifiedRoleId" class="w-full p-2 bg-gray-700 rounded-md"></select>
+                            </div>
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Save Changes</button>
+                        </form>
                     </div>
                 </section>
 
@@ -56,9 +75,9 @@
                             <label class="flex items-center cursor-pointer">
                                 <span class="text-lg font-medium text-white mr-4">Enable Custom Staff Hierarchy</span>
                                 <div class="relative">
-                                    <input type="checkbox" id="staff-hierarchy-toggle" class="sr-only">
+                                    <input type="checkbox" id="staff-hierarchy-toggle" class="sr-only peer">
                                     <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
-                                    <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"></div>
+                                    <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition peer-checked:translate-x-full peer-checked:bg-blue-500"></div>
                                 </div>
                             </label>
                             <p class="text-sm text-gray-400 mt-2">When disabled, all commands will fall back to default Discord permissions.</p>
@@ -89,9 +108,9 @@
                              <label class="flex items-center cursor-pointer">
                                 <span class="text-lg font-medium text-white mr-4">Enable Emergency Override Command</span>
                                 <div class="relative">
-                                    <input type="checkbox" id="emergency-override-toggle" class="sr-only">
+                                    <input type="checkbox" id="emergency-override-toggle" class="sr-only peer">
                                     <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
-                                    <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"></div>
+                                    <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition peer-checked:translate-x-full peer-checked:bg-blue-500"></div>
                                 </div>
                             </label>
                             <p class="text-sm text-gray-400 mt-2">Allows staff to force a punishment at the cost of their role, creating a moderation case.</p>
@@ -103,7 +122,21 @@
                     </div>
                 </section>
                 
-                <!-- Other hidden panels -->
+                <!-- Moderation Settings (Hidden by default) -->
+                <section id="moderation-settings" class="settings-panel hidden">
+                    <h2 class="text-3xl font-bold mb-6">Moderation Settings</h2>
+                    <div class="bg-gray-800 p-8 rounded-lg max-w-2xl">
+                        <p class="text-gray-400">Moderation settings will be configured here.</p>
+                    </div>
+                </section>
+
+                <!-- Logging Settings (Hidden by default) -->
+                <section id="logging-settings" class="settings-panel hidden">
+                    <h2 class="text-3xl font-bold mb-6">Logging Settings</h2>
+                    <div class="bg-gray-800 p-8 rounded-lg max-w-2xl">
+                        <p class="text-gray-400">Logging settings will be configured here.</p>
+                    </div>
+                </section>
             </div>
         </main>
     </div>
@@ -112,11 +145,11 @@
 
     <script>
         // Main dashboard loading and tab switching logic...
-        // ... (This part remains the same)
+        // ... (This part remains the same from previous correct versions)
 
         // New logic for Staff Settings tab
         document.addEventListener('DOMContentLoaded', () => {
-            // ... (existing DOMContentLoaded code)
+            // ... (existing DOMContentLoaded code for fetching data and populating dropdowns)
 
             const addTeamBtn = document.getElementById('add-team-btn');
             const teamsContainer = document.getElementById('staff-teams-container');
@@ -160,7 +193,7 @@
             // In a real app, you'd decrement the teamCount, but for this simple UI it's okay.
         }
 
-        // ... (showToast function)
+        // ... (showToast function and other existing JS)
     </script>
 </body>
 </html>
