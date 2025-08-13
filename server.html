@@ -144,56 +144,156 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        // Main dashboard loading and tab switching logic...
-        // ... (This part remains the same from previous correct versions)
+        // Global variable to hold roles for dynamic team creation
+        let serverRoles = [];
 
-        // New logic for Staff Settings tab
-        document.addEventListener('DOMContentLoaded', () => {
-            // ... (existing DOMContentLoaded code for fetching data and populating dropdowns)
+        async function initializeDashboard() {
+            const accessToken = localStorage.getItem('discord_access_token');
+            if (!accessToken) {
+                window.location.href = 'https://www.ulti-bot.com/';
+                return;
+            }
 
+            const guildId = window.location.pathname.split('/').pop();
+            if (!guildId) {
+                window.location.href = 'https://www.ulti-bot.com/dashboard.html';
+                return;
+            }
+
+            const mainContent = document.getElementById('main-content');
+            
+            try {
+                const response = await fetch(`https://api.ulti-bot.com/api/guild/${guildId}/details`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Could not fetch server details. Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const { guild, channels, roles, savedSettings } = data;
+                serverRoles = roles.filter(role => role.id !== guild.id); // Store roles globally
+
+                // Populate server header
+                const serverHeader = document.getElementById('server-header');
+                const iconUrl = guild.icon ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png` : 'https://cdn.discordapp.com/embed/avatars/1.png';
+                serverHeader.innerHTML = `
+                    <img src="${iconUrl}" alt="Server Icon" class="w-16 h-16 rounded-full">
+                    <h1 class="text-4xl font-bold">${guild.name}</h1>
+                `;
+
+                // Populate all dropdowns
+                populateDropdowns(channels, serverRoles, savedSettings);
+
+            } catch (error) {
+                console.error('Error loading server dashboard:', error);
+                mainContent.innerHTML = `<div class="text-center"><h1 class="text-4xl font-bold text-red-500">An Error Occurred</h1><p class="text-gray-400 mt-4">Could not load server data.</p><p class="text-gray-500 text-sm mt-2">Error: ${error.message}</p><a href="/dashboard.html" class="mt-6 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Back to Server List</a></div>`;
+            }
+        }
+
+        function populateDropdowns(channels, roles, savedSettings) {
+            const verChannelSelect = document.getElementById('verification-channel');
+            const unverifiedRoleSelect = document.getElementById('unverified-role');
+            const verifiedRoleSelect = document.getElementById('verified-role');
+            const ownerRoleSelect = document.getElementById('owner-role');
+
+            const createOptions = (elements, nameField) => {
+                let options = '<option value="">Select...</option>';
+                elements.forEach(el => {
+                    options += `<option value="${el.id}">${el[nameField]}</option>`;
+                });
+                return options;
+            };
+
+            verChannelSelect.innerHTML = createOptions(channels, 'name');
+            unverifiedRoleSelect.innerHTML = createOptions(roles, 'name');
+            verifiedRoleSelect.innerHTML = createOptions(roles, 'name');
+            ownerRoleSelect.innerHTML = createOptions(roles, 'name');
+
+            if (savedSettings) {
+                verChannelSelect.value = savedSettings.verificationChannelId || '';
+                unverifiedRoleSelect.value = savedSettings.unverifiedRoleId || '';
+                verifiedRoleSelect.value = savedSettings.verifiedRoleId || '';
+                // Populate staff settings later
+            }
+        }
+
+        function setupEventListeners() {
+            const verificationForm = document.getElementById('verification-form');
+            const saveBtn = document.getElementById('save-btn'); // Note: This button is inside the verification form
+            const sidebarNav = document.getElementById('sidebar-nav');
+            const settingsPanels = document.querySelectorAll('.settings-panel');
             const addTeamBtn = document.getElementById('add-team-btn');
             const teamsContainer = document.getElementById('staff-teams-container');
             let teamCount = 0;
+            const accessToken = localStorage.getItem('discord_access_token');
+            const guildId = window.location.pathname.split('/').pop();
 
+            // Handle sidebar navigation/tab switching
+            sidebarNav.addEventListener('click', (e) => {
+                if (e.target.tagName === 'A' && e.target.getAttribute('href').startsWith('#')) {
+                    e.preventDefault();
+                    const targetId = e.target.getAttribute('href').substring(1);
+
+                    sidebarNav.querySelectorAll('a').forEach(link => link.classList.remove('active'));
+                    e.target.classList.add('active');
+
+                    settingsPanels.forEach(panel => {
+                        panel.classList.toggle('hidden', panel.id !== `${targetId}-settings`);
+                    });
+                }
+            });
+
+            // Handle Staff Team Creation
             addTeamBtn.addEventListener('click', () => {
-                if (teamCount >= 5) {
+                if (teamsContainer.children.length >= 5) {
                     showToast('You can only have a maximum of 5 staff teams.', 'error');
                     return;
                 }
-                teamCount++;
-                const teamId = `team-${teamCount}`;
-                const teamTemplate = `
-                    <div id="${teamId}" class="bg-gray-700 p-4 rounded-lg border border-gray-600">
-                        <div class="flex justify-between items-center mb-4">
-                            <input type="text" placeholder="Team Name (e.g., Moderators)" class="text-xl font-bold bg-transparent border-b border-gray-500 focus:outline-none focus:border-blue-400">
-                            <button type="button" class="text-red-500 hover:text-red-400 font-bold" onclick="removeTeam('${teamId}')">Remove Team</button>
+                const teamId = `team-${Date.now()}`; // Use timestamp for unique ID
+                const teamTemplate = document.createElement('div');
+                teamTemplate.id = teamId;
+                teamTemplate.className = "bg-gray-700 p-4 rounded-lg border border-gray-600";
+                teamTemplate.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <input type="text" placeholder="Team Name (e.g., Moderators)" class="text-xl font-bold bg-transparent border-b border-gray-500 focus:outline-none focus:border-blue-400">
+                        <button type="button" class="text-red-500 hover:text-red-400 font-bold remove-team-btn">Remove Team</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Team Roles (Max 5)</label>
+                            <select multiple class="w-full h-32 p-2 bg-gray-800 rounded-md">${serverRoles.map(r => `<option value="${r.id}">${r.name}</option>`).join('')}</select>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-300 mb-2">Team Roles (Max 5)</label>
-                                <select multiple class="w-full h-32 p-2 bg-gray-800 rounded-md"></select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-300 mb-2">Punishment Rules</label>
-                                <select class="w-full p-2 bg-gray-800 rounded-md">
-                                    <option value="full">Full Permissions</option>
-                                    <option value="auth">Requires Authorization</option>
-                                    <option value="none">No Permissions</option>
-                                </select>
-                            </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Punishment Rules</label>
+                            <select class="w-full p-2 bg-gray-800 rounded-md">
+                                <option value="full">Full Permissions</option>
+                                <option value="auth">Requires Authorization</option>
+                                <option value="none">No Permissions</option>
+                            </select>
                         </div>
                     </div>
                 `;
-                teamsContainer.insertAdjacentHTML('beforeend', teamTemplate);
+                teamsContainer.appendChild(teamTemplate);
+                teamTemplate.querySelector('.remove-team-btn').addEventListener('click', () => teamTemplate.remove());
             });
-        });
-
-        function removeTeam(teamId) {
-            document.getElementById(teamId).remove();
-            // In a real app, you'd decrement the teamCount, but for this simple UI it's okay.
         }
 
-        // ... (showToast function and other existing JS)
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeDashboard();
+            setupEventListeners();
+        });
     </script>
 </body>
 </html>
