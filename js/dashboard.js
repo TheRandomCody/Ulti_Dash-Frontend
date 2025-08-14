@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const userInfo = document.getElementById('user-info');
     const welcomeMessage = document.getElementById('welcome-message');
+    const mainContent = document.querySelector('main.container');
 
     try {
         const response = await fetch('https://api.ulti-bot.com/auth/user', {
@@ -48,16 +49,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (error) {
         console.error('Dashboard Error:', error);
-        // Display the error on the page instead of immediately redirecting
-        welcomeMessage.textContent = 'Could not load dashboard.';
-        const mainContent = document.querySelector('main.container');
-        if(mainContent) {
-            mainContent.innerHTML += `<p class="text-red-500 mt-4 text-center">Error: ${error.message}. Please try logging in again.</p>`;
+        // Display the error on the page permanently for debugging
+        if (welcomeMessage) {
+            welcomeMessage.textContent = 'Could not load dashboard.';
         }
-        // Still log out after a delay so the user can see the error
-        localStorage.removeItem('discord_access_token');
-        setTimeout(() => {
-            // window.location.href = '/'; // You can re-enable this later if you want
-        }, 5000);
+        if (mainContent) {
+            mainContent.innerHTML += `<p class="text-red-500 mt-4 text-center"><strong>Error:</strong> ${error.message}. Please check the console (F12) for more details and report this error.</p>`;
+        }
+        // Temporarily disable the logout to see the error
+        // localStorage.removeItem('discord_access_token');
     }
 });
