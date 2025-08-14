@@ -8,45 +8,56 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style> 
         body { font-family: 'Inter', sans-serif; } 
-        .server-card { transition: transform 0.2s, box-shadow 0.2s; }
-        .server-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); }
-        .card-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; text-align: center; padding: 1rem; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
-        .server-card:hover .card-overlay { opacity: 1; pointer-events: auto; }
-        .invite-button { background-color: #3b82f6; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: bold; transition: background-color 0.2s; }
-        .invite-button:hover { background-color: #2563eb; }
+        .action-button {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .action-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-white">
+<body class="bg-gray-900 text-white flex flex-col min-h-screen">
 
     <!-- Header -->
-    <header class="bg-gray-800/50 backdrop-blur-sm sticky top-0 z-50">
+    <header class="bg-gray-800/50 backdrop-blur-sm w-full">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="https://www.ulti-bot.com/" class="text-2xl font-bold text-white">Ulti-Bot</a>
-            <div id="header-user-profile" class="flex items-center gap-4">
-                <!-- Small user info for the header will be loaded by JavaScript -->
+            <span class="text-xl font-bold">Ulti-Bot Dashboard</span>
+            <div id="user-info" class="flex items-center gap-4">
+                <!-- User info will be loaded by JavaScript -->
             </div>
         </nav>
     </header>
 
     <!-- Main Content -->
-    <main class="container mx-auto px-6 py-12">
-        <!-- User Profile Section -->
-        <section id="user-profile-section" class="mb-12 bg-gray-800 p-6 rounded-lg">
-            <!-- Full user profile will be loaded here -->
-        </section>
-
-        <div class="border-t border-gray-700 my-8"></div>
-
-        <!-- Server List Section -->
-        <section id="server-list-section">
-            <h1 class="text-4xl font-bold mb-8">Your Servers</h1>
-            <div id="server-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <div id="loading-placeholder" class="text-center col-span-full text-gray-400">
-                    <p>Loading your servers...</p>
-                </div>
+    <main class="flex-grow flex items-center justify-center">
+        <div id="main-container" class="container mx-auto px-6 text-center">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Manage Servers Button -->
+                <a href="/servers.html" id="manage-servers-btn" class="action-button bg-gray-800 p-10 rounded-lg flex flex-col items-center justify-center">
+                    <h2 class="text-2xl font-bold mb-2">Manage Your Servers</h2>
+                    <p class="text-gray-400">Configure Ulti-Bot for servers you manage.</p>
+                </a>
+                <!-- View Profile Button -->
+                <a href="/profile.html" id="view-profile-btn" class="action-button bg-gray-800 p-10 rounded-lg flex flex-col items-center justify-center">
+                    <h2 class="text-2xl font-bold mb-2">View Your Profile</h2>
+                    <p class="text-gray-400">View your verification status and stats.</p>
+                </a>
+                <!-- Find Servers Button -->
+                <a href="#" id="find-servers-btn" class="action-button bg-gray-800 p-10 rounded-lg flex flex-col items-center justify-center">
+                    <h2 class="text-2xl font-bold mb-2">Find New Servers</h2>
+                    <p class="text-gray-400">Discover new communities using Ulti-Bot.</p>
+                </a>
             </div>
-        </section>
+        </div>
     </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800/50 w-full">
+        <div class="container mx-auto px-6 py-4 text-center text-gray-500 text-sm">
+            <p>&copy; 2025 Ulti-Bot | <a href="#" class="hover:text-white">Support Server</a></p>
+        </div>
+    </footer>
 
     <script src="/js/dashboard.js"></script>
 </body>
