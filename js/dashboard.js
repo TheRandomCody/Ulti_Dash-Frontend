@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const userInfo = document.getElementById('user-info');
-    const welcomeMessage = document.getElementById('welcome-message');
     const mainContent = document.querySelector('main.container');
 
     try {
@@ -21,8 +20,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const user = await response.json();
-        
-        welcomeMessage.textContent = `Welcome, ${user.username}!`;
         
         const avatarUrl = user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png` : 'https://cdn.discordapp.com/embed/avatars/0.png';
         userInfo.innerHTML = `
@@ -50,11 +47,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
         console.error('Dashboard Error:', error);
         // Display the error on the page permanently for debugging
-        if (welcomeMessage) {
-            welcomeMessage.textContent = 'Could not load dashboard.';
-        }
         if (mainContent) {
-            mainContent.innerHTML += `<p class="text-red-500 mt-4 text-center"><strong>Error:</strong> ${error.message}. Please check the console (F12) for more details and report this error.</p>`;
+            mainContent.innerHTML = `<p class="text-red-500 mt-4 text-center"><strong>Error:</strong> ${error.message}. Please check the console (F12) for more details and report this error.</p>`;
         }
         // Temporarily disable the logout to see the error
         // localStorage.removeItem('discord_access_token');
