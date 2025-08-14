@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         // --- Fetch All Data in Parallel ---
+        // FIXED: Corrected the API endpoint URLs
         const [userResponse, profileDetailsResponse, guildsResponse] = await Promise.all([
             fetch('https://api.ulti-bot.com/api/auth/user', { headers: { 'Authorization': `Bearer ${accessToken}` } }),
             fetch('https://api.ulti-bot.com/api/profile/details', { headers: { 'Authorization': `Bearer ${accessToken}` } }),
