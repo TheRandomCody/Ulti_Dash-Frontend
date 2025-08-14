@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const userInfo = document.getElementById('user-info');
-    const mainContent = document.querySelector('main.container');
+    // FIXED: Select the main content container correctly
+    const mainContent = document.querySelector('main .container');
 
     try {
         const response = await fetch('https://api.ulti-bot.com/auth/user', {
@@ -46,7 +47,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
         console.error('Dashboard Error:', error);
         if (mainContent) {
-            mainContent.innerHTML = `<p class="text-red-500 mt-4 text-center"><strong>Error:</strong> ${error.message}. Please check the console (F12) for more details and report this error.</p>`;
+            mainContent.innerHTML = `<p class="text-red-500 mt-4 text-center"><strong>Error:</strong> ${error.message}. Please try logging in again.</p>`;
         }
+        // Log the user out if there's an error
+        localStorage.removeItem('discord_access_token');
     }
 });
