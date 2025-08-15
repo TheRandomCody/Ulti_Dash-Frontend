@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Ulti-Bot</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* A little extra style for a nice background */
+        body {
+            background-color: #454545;
+            color: #e2e8f0;
+        }
+        /* Custom styles for the toggle switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #105b42;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #105b42;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen font-sans">
+
+    <!-- TOP BAR -->
+    <header class="bg-[#6a6a6a] shadow-lg">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="/" class="flex items-center space-x-3">
+                <img src="/images/logo.png" alt="Ulti-Bot Logo" class="h-10 w-10">
+                <span class="text-2xl font-bold text-white">Ulti-Bot</span>
+            </a>
+            <!-- Login/Logout Button Area -->
+            <div id="auth-container">
+                <div class="h-10 w-48 bg-gray-700 rounded-lg animate-pulse"></div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-grow container mx-auto px-6 py-8">
+        <div class="flex items-center mb-8">
+            <img id="server-icon" src="https://placehold.co/64x64/6a6a6a/e2e8f0?text=..." alt="Server Icon" class="h-16 w-16 rounded-full mr-4">
+            <h1 id="server-name" class="text-4xl font-bold text-white">Loading Server...</h1>
+        </div>
+        
+        <h2 class="text-2xl font-semibold text-gray-300 mb-6">Modules</h2>
+
+        <div id="module-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Loading Skeletons -->
+            <div class="h-24 bg-gray-700 rounded-lg animate-pulse"></div>
+            <div class="h-24 bg-gray-700 rounded-lg animate-pulse"></div>
+            <div class="h-24 bg-gray-700 rounded-lg animate-pulse"></div>
+        </div>
+    </main>
+
+    <!-- BOTTOM BAR -->
+    <footer class="bg-[#6a6a6a] text-gray-300 py-4">
+        <div class="container mx-auto px-6 text-center">
+            <p>Ulti-Bot &copy; 2025</p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const API_BASE_URL = 'https://api.ulti-bot.com'; 
+        const authContainer = document.getElementById('auth-container');
+        const serverIcon = document.getElementById('server-icon');
+        const serverName = document.getElementById('server-name');
+        const moduleListContainer = document.getElementById('module-list-container');
+
+        // A helper object to give modules more descriptive names and descriptions
+        const moduleDetails = {
+            leveling: { name: 'Leveling', description: 'Reward active users with levels and roles.' },
+            economy: { name: 'Economy', description: 'Create a virtual currency for your server.' },
+            moderation: { name: 'Moderation', description: 'Tools to help keep your server clean.' },
+            verification: { name: 'Verification', description: 'Gate new members behind a verification step.' },
+            welcome: { name: 'Welcome Messages', description: 'Greet new members when they join.' },
+            inviteTracking: { name: 'Invite Tracking', description: 'See who is inviting new members.' },
+            embeds: { name: 'Embed Builder', description: 'Create and send custom rich embed messages.' },
+            reactionRoles: { name: 'Reaction Roles', description: 'Let users assign themselves roles with reactions.' },
+            autoRoles: { name: 'Auto Roles', description: 'Automatically assign roles to new members.' },
+            birthdays: { name: 'Birthdays', description: 'Celebrate your members\' birthdays.' },
+            inServerGames: { name: 'In-Server Games', description: 'Fun games for your members to play.' },
+            socialMediaAlerts: { name: 'Social Media Alerts', description: 'Announce new posts from social media.' },
+            polls: { name: 'Polls', description: 'Create simple polls for your members.' },
+            tickets: { name: 'Ticket System', description: 'Allow members to create private support tickets.' },
+            autoModeration: { name: 'Auto Moderation', description: 'Automatically delete spam and bad words.' },
+            announcements: { name: 'Announcements', description: 'Schedule and send server announcements.' },
+            autoresponder: { name: 'Autoresponder', description: 'Set up custom command responses.' },
+            logging: { name: 'Logging', description: 'Log server events to a specific channel.' }
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuthStatus();
+            // We'll add the function to fetch server data here
+        });
+
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users/me`, { credentials: 'include' });
+                if (response.ok) {
+                    const user = await response.json();
+                    authContainer.innerHTML = `
+                        <div class="flex items-center space-x-4">
+                            <span class="text-white hidden sm:inline">Welcome, ${user.username}</span>
+                            <a href="${API_BASE_URL}/api/auth/logout" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                                Logout
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                authContainer.innerHTML = `<p class="text-red-500">Could not verify login.</p>`;
+            }
+        }
+        
+        // TODO: Add function to fetch server-specific data and render modules
+        
+    </script>
+</body>
+</html>
