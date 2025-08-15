@@ -13,19 +13,37 @@
             color: #e2e8f0;
         }
         /* Custom styles for form elements */
-        .form-input, .form-select, .form-multiselect {
+        .form-input, .form-select, .form-textarea {
             background-color: #2d3748;
             border: 2px solid #000;
             color: #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
         }
         .form-label {
             color: #a0aec0;
+            font-weight: 600;
         }
-        .reward-item {
+        .settings-card {
+            background-color: #105b42;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border-width: 4px;
+            border-color: #6a6a6a;
+            --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+            --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+            box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+            --tw-ring-color: #000;
+            --tw-shadow: inset 0 0 0 2px #000;
+        }
+        .list-item {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            margin-bottom: 0.5rem;
+            justify-content: space-between;
+            background-color: #2d3748;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #4a5568;
         }
     </style>
 </head>
@@ -53,78 +71,112 @@
         
         <h1 class="text-4xl font-bold text-white mb-8">Leveling Module Settings</h1>
 
-        <div id="settings-form" class="space-y-8">
-            <!-- General Settings -->
-            <div class="bg-black p-0.5 rounded-lg">
-                <div class="bg-[#6a6a6a] p-1 rounded">
-                    <div class="bg-[#105b42] p-5 rounded">
-                        <h2 class="text-2xl font-semibold mb-4 text-white">General Settings</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="xpPerMessage" class="form-label block mb-2">XP Per Message</label>
-                                <input type="number" id="xpPerMessage" class="form-input w-full p-2 rounded">
-                            </div>
-                            <div>
-                                <label for="xpCooldownSeconds" class="form-label block mb-2">XP Cooldown (seconds)</label>
-                                <input type="number" id="xpCooldownSeconds" class="form-input w-full p-2 rounded">
-                            </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column: Main Settings -->
+            <div id="settings-form" class="lg:col-span-2 space-y-8">
+                <!-- General Settings -->
+                <div class="settings-card">
+                    <h2 class="text-2xl font-semibold mb-4 text-white">General Settings</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="xpPerMessage" class="form-label block mb-2">XP Per Message</label>
+                            <input type="number" id="xpPerMessage" class="form-input w-full">
+                        </div>
+                        <div>
+                            <label for="xpCooldownSeconds" class="form-label block mb-2">XP Cooldown (seconds)</label>
+                            <input type="number" id="xpCooldownSeconds" class="form-input w-full">
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Level Up Message -->
-            <div class="bg-black p-0.5 rounded-lg">
-                <div class="bg-[#6a6a6a] p-1 rounded">
-                    <div class="bg-[#105b42] p-5 rounded">
-                        <h2 class="text-2xl font-semibold mb-4 text-white">Level Up Message</h2>
-                        <div>
-                            <label for="levelUpMessage" class="form-label block mb-2">Message Content</label>
-                            <textarea id="levelUpMessage" rows="3" class="form-input w-full p-2 rounded" placeholder="Congratulations {user}, you have reached level {level}!"></textarea>
-                            <p class="text-sm text-gray-400 mt-2">Use {user} for the user's name and {level} for their new level.</p>
+                <!-- Level Up Message -->
+                <div class="settings-card">
+                    <h2 class="text-2xl font-semibold mb-4 text-white">Level Up Message</h2>
+                    <!-- Embed Toggle Here -->
+                    <div>
+                        <label for="levelUpMessage" class="form-label block mb-2">Message Content</label>
+                        <textarea id="levelUpMessage" rows="3" class="form-textarea w-full" placeholder="Congratulations {user}, you have reached level {level}!"></textarea>
+                        <p class="text-sm text-gray-400 mt-2">Use {user} for the user's name and {level} for their new level.</p>
+                    </div>
+                     <div class="mt-4">
+                        <label for="levelUpChannel" class="form-label block mb-2">Send Message In</label>
+                        <select id="levelUpChannel" class="form-select w-full">
+                            <option value="current">Current Channel</option>
+                            <!-- Channels will be populated by JavaScript -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Ignored Roles & Role Rewards -->
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                    <div class="settings-card">
+                        <h2 class="text-2xl font-semibold mb-4 text-white">Ignored Roles</h2>
+                        <div id="ignored-roles-list" class="space-y-2 mb-4"></div>
+                        <div class="flex gap-2">
+                            <select id="ignored-role-select" class="form-select flex-1"></select>
+                            <button id="add-ignored-role-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-2 rounded">+</button>
                         </div>
-                         <div class="mt-4">
-                            <label for="levelUpChannel" class="form-label block mb-2">Send Message In</label>
-                            <select id="levelUpChannel" class="form-select w-full p-2 rounded">
-                                <option value="current">Current Channel</option>
-                                <!-- Channels will be populated by JavaScript -->
+                    </div>
+                    <div class="settings-card">
+                        <h2 class="text-2xl font-semibold mb-4 text-white">Role Rewards</h2>
+                        <div id="role-rewards-list" class="space-y-2 mb-4"></div>
+                        <div class="flex gap-2 items-center">
+                            <input type="number" id="new-reward-level" placeholder="Level" class="form-input w-24">
+                            <select id="new-reward-role" class="form-select flex-1"></select>
+                            <button id="add-reward-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-2 rounded">+</button>
+                        </div>
+                        <div class="mt-2">
+                             <input type="text" id="create-role-name" placeholder="Or create new role..." class="form-input w-full">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Punishment Settings -->
+                <div class="settings-card">
+                    <h2 class="text-2xl font-semibold mb-4 text-white">Punishment Settings</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="onWarn" class="form-label block mb-2">On User Warn</label>
+                            <select id="onWarn" class="form-select w-full">
+                                <option value="none">Do Nothing</option>
+                                <option value="reset_xp">Reset Current Level XP</option>
+                                <option value="deduct_xp">Deduct XP</option>
                             </select>
                         </div>
+                        <div>
+                            <label for="onMute" class="form-label block mb-2">On User Mute</label>
+                            <select id="onMute" class="form-select w-full">
+                                <option value="none">Do Nothing</option>
+                                <option value="reset_xp">Reset Current Level XP</option>
+                                <option value="deduct_xp">Deduct XP</option>
+                                <option value="deduct_level">Deduct 1 Level</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="deductXpAmount" class="form-label block mb-2">Deduct XP Amount</label>
+                            <input type="number" id="deductXpAmount" class="form-input w-full">
+                        </div>
                     </div>
+                </div>
+                
+                <div class="flex justify-end">
+                    <button id="save-button" class="bg-[#105b42] hover:bg-[#1f9f73] text-white font-bold py-2 px-6 rounded-lg transition duration-300 border-2 border-black">
+                        Save Changes
+                    </button>
                 </div>
             </div>
 
-            <!-- Ignored Roles & Role Rewards -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-black p-0.5 rounded-lg h-full">
-                    <div class="bg-[#6a6a6a] p-1 rounded h-full">
-                        <div class="bg-[#105b42] p-5 rounded h-full">
-                            <h2 class="text-2xl font-semibold mb-4 text-white">Ignored Roles</h2>
-                            <p class="text-gray-300 mb-2">Users with these roles will not gain XP.</p>
-                            <select id="ignoredRoles" class="form-multiselect w-full p-2 rounded" multiple size="8"></select>
-                        </div>
+            <!-- Right Column: Leaderboard -->
+            <div class="lg:col-span-1">
+                 <div class="settings-card h-full">
+                    <h2 class="text-2xl font-semibold mb-4 text-white">Leaderboard</h2>
+                    <div id="leaderboard-container" class="space-y-3">
+                        <!-- Leaderboard will be populated here -->
+                        <div class="h-12 bg-gray-700 rounded animate-pulse"></div>
+                        <div class="h-12 bg-gray-700 rounded animate-pulse"></div>
+                        <div class="h-12 bg-gray-700 rounded animate-pulse"></div>
                     </div>
                 </div>
-                <div class="bg-black p-0.5 rounded-lg h-full">
-                    <div class="bg-[#6a6a6a] p-1 rounded h-full">
-                        <div class="bg-[#105b42] p-5 rounded h-full">
-                            <h2 class="text-2xl font-semibold mb-4 text-white">Role Rewards</h2>
-                            <p class="text-gray-300 mb-2">Assign roles when users reach a level.</p>
-                            <div id="role-rewards-list" class="space-y-2 mb-4"></div>
-                            <div class="flex gap-2">
-                                <input type="number" id="new-reward-level" placeholder="Level" class="form-input p-2 rounded w-24">
-                                <select id="new-reward-role" class="form-select p-2 rounded flex-1"></select>
-                                <button id="add-reward-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-2 rounded">+</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="flex justify-end">
-                <button id="save-button" class="bg-[#105b42] hover:bg-[#1f9f73] text-white font-bold py-2 px-6 rounded-lg transition duration-300 border-2 border-black">
-                    Save Changes
-                </button>
             </div>
         </div>
     </main>
@@ -152,10 +204,10 @@
             backToDashboardLink.href = `/dashboard.html?id=${serverId}`;
 
             await checkAuthStatus();
-            // Fetch both settings and server data (roles/channels) at the same time
             await Promise.all([
                 fetchLevelingSettings(),
-                fetchServerData()
+                fetchServerData(),
+                fetchLeaderboard()
             ]);
         });
 
@@ -200,10 +252,8 @@
                 if (!response.ok) throw new Error('Failed to fetch server data.');
                 const data = await response.json();
                 
-                // Store roles for later use
-                serverRoles = data.roles.filter(role => !role.managed && role.name !== '@everyone'); // Filter out bot roles and @everyone
+                serverRoles = data.roles.filter(role => !role.managed && role.name !== '@everyone');
 
-                // Populate channel dropdown
                 const channelSelect = document.getElementById('levelUpChannel');
                 data.channels.forEach(channel => {
                     const option = document.createElement('option');
@@ -212,7 +262,6 @@
                     channelSelect.appendChild(option);
                 });
 
-                // Populate role dropdowns
                 populateRoleSelects();
 
             } catch (error) {
@@ -220,20 +269,50 @@
             }
         }
 
+        async function fetchLeaderboard() {
+            if (!serverId) return;
+            const container = document.getElementById('leaderboard-container');
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/servers/${serverId}/leaderboard`, { credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to fetch leaderboard.');
+                const leaderboard = await response.json();
+                
+                if (leaderboard.length === 0) {
+                    container.innerHTML = '<p class="text-gray-400">No one has gained any XP yet.</p>';
+                    return;
+                }
+
+                container.innerHTML = leaderboard.map((user, index) => `
+                    <div class="flex items-center bg-gray-700 p-2 rounded">
+                        <span class="font-bold text-lg w-8">${index + 1}.</span>
+                        <img src="${user.avatar || 'https://placehold.co/32x32/454545/e2e8f0?text=?'}" class="w-8 h-8 rounded-full mr-3">
+                        <div class="flex-1">
+                            <p class="font-semibold truncate">${user.username}</p>
+                            <p class="text-xs text-gray-400">Level ${user.level} - ${user.xp} XP</p>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error fetching leaderboard:', error);
+                container.innerHTML = '<p class="text-red-400">Could not load leaderboard.</p>';
+            }
+        }
+
+
         function populateRoleSelects() {
-            const ignoredRolesSelect = document.getElementById('ignoredRoles');
+            const ignoredRoleSelect = document.getElementById('ignored-role-select');
             const newRewardRoleSelect = document.getElementById('new-reward-role');
             
-            // Clear existing options
-            ignoredRolesSelect.innerHTML = '';
-            newRewardRoleSelect.innerHTML = '<option value="">Select a role...</option>';
+            ignoredRoleSelect.innerHTML = '<option value="">Select a role to ignore...</option>';
+            newRewardRoleSelect.innerHTML = '<option value="">Select a role reward...</option>';
 
             serverRoles.forEach(role => {
                 const option = document.createElement('option');
                 option.value = role.id;
                 option.textContent = role.name;
                 
-                ignoredRolesSelect.appendChild(option.cloneNode(true));
+                ignoredRoleSelect.appendChild(option.cloneNode(true));
                 newRewardRoleSelect.appendChild(option);
             });
         }
@@ -241,34 +320,39 @@
         function populateForm(settings) {
             document.getElementById('xpPerMessage').value = settings.xpPerMessage;
             document.getElementById('xpCooldownSeconds').value = settings.xpCooldownSeconds;
-            document.getElementById('levelUpMessage').value = settings.levelUpMessage;
+            document.getElementById('levelUpMessage').value = settings.levelUpMessage.content;
             document.getElementById('levelUpChannel').value = settings.levelUpChannel;
+            document.getElementById('onWarn').value = settings.punishmentSettings.onWarn;
+            document.getElementById('onMute').value = settings.punishmentSettings.onMute;
+            document.getElementById('deductXpAmount').value = settings.punishmentSettings.deductXpAmount;
             
-            // Select ignored roles
-            const ignoredRolesSelect = document.getElementById('ignoredRoles');
-            for (const option of ignoredRolesSelect.options) {
-                if (settings.ignoredRoles.includes(option.value)) {
-                    option.selected = true;
-                }
-            }
-
-            // Render existing role rewards
+            renderIgnoredRoles(settings.ignoredRoles);
             renderRoleRewards(settings.roleRewards);
+        }
+
+        function renderIgnoredRoles(ignoredIds = []) {
+            const list = document.getElementById('ignored-roles-list');
+            list.innerHTML = '';
+            ignoredIds.forEach(roleId => {
+                const role = serverRoles.find(r => r.id === roleId);
+                if (!role) return;
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `<span>@${role.name}</span><button class="remove-ignored-role-btn bg-red-600 hover:bg-red-700 text-white font-bold p-1 rounded">&times;</button>`;
+                item.dataset.roleId = roleId;
+                list.appendChild(item);
+            });
         }
 
         function renderRoleRewards(rewards = []) {
             const list = document.getElementById('role-rewards-list');
-            list.innerHTML = ''; // Clear current list
+            list.innerHTML = '';
             rewards.forEach(reward => {
                 const role = serverRoles.find(r => r.id === reward.roleId);
-                if (!role) return; // Skip if role doesn't exist anymore
-
+                if (!role) return;
                 const item = document.createElement('div');
-                item.className = 'reward-item bg-gray-700 p-2 rounded';
-                item.innerHTML = `
-                    <span class="flex-1">Level ${reward.level} &rarr; @${role.name}</span>
-                    <button class="remove-reward-btn bg-red-600 hover:bg-red-700 text-white font-bold p-1 rounded">&times;</button>
-                `;
+                item.className = 'list-item';
+                item.innerHTML = `<span>Level ${reward.level} &rarr; @${role.name}</span><button class="remove-reward-btn bg-red-600 hover:bg-red-700 text-white font-bold p-1 rounded">&times;</button>`;
                 item.dataset.level = reward.level;
                 item.dataset.roleId = reward.roleId;
                 list.appendChild(item);
@@ -276,24 +360,66 @@
         }
 
         // --- Event Listeners for Dynamic Elements ---
-        document.getElementById('add-reward-btn').addEventListener('click', () => {
+        document.getElementById('add-ignored-role-btn').addEventListener('click', () => {
+            const select = document.getElementById('ignored-role-select');
+            const roleId = select.value;
+            if (!roleId) return;
+            const currentIds = Array.from(document.querySelectorAll('#ignored-roles-list .list-item')).map(item => item.dataset.roleId);
+            if (!currentIds.includes(roleId)) {
+                renderIgnoredRoles([...currentIds, roleId]);
+            }
+            select.value = '';
+        });
+
+        document.getElementById('ignored-roles-list').addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-ignored-role-btn')) {
+                e.target.parentElement.remove();
+            }
+        });
+
+        document.getElementById('add-reward-btn').addEventListener('click', async () => {
             const levelInput = document.getElementById('new-reward-level');
             const roleSelect = document.getElementById('new-reward-role');
+            const createRoleInput = document.getElementById('create-role-name');
             const level = parseInt(levelInput.value);
-            const roleId = roleSelect.value;
+            let roleId = roleSelect.value;
+            let roleName = createRoleInput.value.trim();
 
-            if (!level || !roleId) {
-                alert('Please enter a level and select a role.');
+            if (!level || level <= 0) {
+                alert('Please enter a level greater than 0.');
                 return;
+            }
+            if (!roleId && !roleName) {
+                alert('Please select or create a role.');
+                return;
+            }
+
+            if (roleName) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/servers/${serverId}/roles`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ name: roleName })
+                    });
+                    if (!response.ok) throw new Error('Failed to create role.');
+                    const newRole = await response.json();
+                    roleId = newRole.id;
+                    // Refresh server data to include the new role
+                    await fetchServerData();
+                } catch (error) {
+                    alert(error.message);
+                    return;
+                }
             }
 
             const currentRewards = getRoleRewardsFromDOM();
             currentRewards.push({ level, roleId });
             renderRoleRewards(currentRewards);
 
-            // Reset inputs
             levelInput.value = '';
             roleSelect.value = '';
+            createRoleInput.value = '';
         });
 
         document.getElementById('role-rewards-list').addEventListener('click', (e) => {
@@ -304,7 +430,7 @@
 
         function getRoleRewardsFromDOM() {
             const rewards = [];
-            document.querySelectorAll('#role-rewards-list .reward-item').forEach(item => {
+            document.querySelectorAll('#role-rewards-list .list-item').forEach(item => {
                 rewards.push({
                     level: parseInt(item.dataset.level),
                     roleId: item.dataset.roleId
@@ -318,16 +444,24 @@
             saveButton.textContent = 'Saving...';
             saveButton.disabled = true;
 
-            const ignoredRoles = Array.from(document.getElementById('ignoredRoles').selectedOptions).map(opt => opt.value);
+            const ignoredRoles = Array.from(document.querySelectorAll('#ignored-roles-list .list-item')).map(item => item.dataset.roleId);
             const roleRewards = getRoleRewardsFromDOM();
 
             const settingsToSave = {
                 xpPerMessage: parseInt(document.getElementById('xpPerMessage').value),
                 xpCooldownSeconds: parseInt(document.getElementById('xpCooldownSeconds').value),
-                levelUpMessage: document.getElementById('levelUpMessage').value,
+                levelUpMessage: {
+                    content: document.getElementById('levelUpMessage').value,
+                    // TODO: Add embed fields here
+                },
                 levelUpChannel: document.getElementById('levelUpChannel').value,
                 ignoredRoles: ignoredRoles,
-                roleRewards: roleRewards
+                roleRewards: roleRewards,
+                punishmentSettings: {
+                    onWarn: document.getElementById('onWarn').value,
+                    onMute: document.getElementById('onMute').value,
+                    deductXpAmount: parseInt(document.getElementById('deductXpAmount').value)
+                }
             };
 
             try {
