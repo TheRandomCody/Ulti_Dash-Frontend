@@ -184,13 +184,16 @@
 
             // Add event listeners to all the new toggles
             sortedModuleKeys.forEach(key => {
+                const linkElement = document.querySelector(`a[href="/${key}-module.html?id=${serverId}"]`);
                 const toggle = document.getElementById(`${key}-toggle`);
-                // Prevent the link from being followed when the toggle is clicked
-                toggle.parentElement.parentElement.addEventListener('click', (e) => {
-                    if (e.target === toggle || e.target.nextElementSibling === toggle.nextElementSibling) {
+
+                // Prevent the link from being followed when the toggle itself or its label is clicked
+                linkElement.addEventListener('click', (e) => {
+                    if (e.target === toggle || e.target === toggle.nextElementSibling) {
                         e.preventDefault();
                     }
                 });
+
                 toggle.addEventListener('change', handleToggleChange);
             });
         }
