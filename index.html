@@ -9,7 +9,7 @@
     <style>
         /* A little extra style for a nice background */
         body {
-            background-color: #1a202c;
+            background-color: #454545;
             color: #e2e8f0;
         }
     </style>
@@ -17,7 +17,7 @@
 <body class="flex flex-col min-h-screen font-sans">
 
     <!-- TOP BAR -->
-    <header class="bg-gray-900 shadow-lg">
+    <header class="bg-[#6a6a6a] shadow-lg">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <h1 class="text-2xl font-bold text-white">Ulti-Bot</h1>
             <!-- Login/Logout Button Area -->
@@ -41,7 +41,7 @@
     </main>
 
     <!-- BOTTOM BAR -->
-    <footer class="bg-gray-900 text-gray-400 py-4">
+    <footer class="bg-[#6a6a6a] text-gray-300 py-4">
         <div class="container mx-auto px-6 text-center">
             <p>Ulti-Bot &copy; 2025</p>
         </div>
@@ -96,7 +96,7 @@
 
         function renderLoggedOutState() {
             authContainer.innerHTML = `
-                <a href="${API_BASE_URL}/api/auth/discord/login" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                <a href="${API_BASE_URL}/api/auth/discord/login" class="bg-[#80201b] hover:bg-[#b73d37] text-white font-bold py-2 px-4 rounded-lg transition duration-300">
                     Login with Discord
                 </a>
             `;
@@ -109,7 +109,7 @@
                     <div>
                         <h2 class="text-4xl font-bold mb-4 text-white">Verification Required</h2>
                         <p class="text-xl mb-8 text-gray-300">To access the Ulti-Bot network, you must first verify your identity. This is a one-time process to ensure the safety and security of our communities.</p>
-                        <button id="verify-button" class="bg-[#4dc7ed] hover:bg-[#aee8f7] text-black font-bold rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105 py-6 text-2xl w-full max-w-md mx-auto">
+                        <button id="verify-button" class="bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105 py-6 text-2xl w-full max-w-md mx-auto">
                             Verify with Stripe
                         </button>
                         <p class="text-sm mt-4 text-gray-500">(This will redirect to Stripe Identity. We do not store your personal documents.)</p>
@@ -130,39 +130,39 @@
                 <div class="flex-grow flex flex-col md:flex-row justify-center items-stretch space-y-6 md:space-y-0 md:space-x-6 p-6">
                     
                     <!-- Server Search Button -->
-                    <a href="${serverSearchUrl}" class="bg-[#4dc7ed] hover:bg-[#aee8f7] text-black rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-2 flex-1 flex flex-col p-6 text-center">
+                    <a href="${serverSearchUrl}" class="bg-[#105b42] hover:bg-[#1f9f73] text-white rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-2 flex-1 flex flex-col p-6 text-center">
                         <div class="flex-1 flex flex-col items-center justify-center">
-                            <img src="https://placehold.co/100x100/1a202c/e2e8f0?text=🔍" alt="Search Icon" class="h-24 w-24 mb-6 rounded-full">
+                            <img src="https://placehold.co/100x100/454545/e2e8f0?text=🔍" alt="Search Icon" class="h-24 w-24 mb-6 rounded-full">
                             <h2 class="text-3xl font-bold">Server Search</h2>
                         </div>
                         <div class="h-1/3 pt-6 border-t border-gray-700">
-                            <p class="text-gray-600">
+                            <p class="text-gray-300">
                                 Discover new communities, read reviews, and find the perfect server for you.
                             </p>
                         </div>
                     </a>
 
                     <!-- Server Management Button -->
-                    <a href="${serverManagementUrl}" class="bg-[#4dc7ed] hover:bg-[#aee8f7] text-black rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-2 flex-1 flex flex-col p-6 text-center">
+                    <a href="${serverManagementUrl}" class="bg-[#105b42] hover:bg-[#1f9f73] text-white rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-2 flex-1 flex flex-col p-6 text-center">
                         <div class="flex-1 flex flex-col items-center justify-center">
-                            <img src="https://placehold.co/100x100/1a202c/e2e8f0?text=⚙️" alt="Settings Icon" class="h-24 w-24 mb-6 rounded-full">
+                            <img src="https://placehold.co/100x100/454545/e2e8f0?text=⚙️" alt="Settings Icon" class="h-24 w-24 mb-6 rounded-full">
                             <h2 class="text-3xl font-bold">Server Management</h2>
                         </div>
                         <div class="h-1/3 pt-6 border-t border-gray-700">
-                            <p class="text-gray-600">
+                            <p class="text-gray-300">
                                 Configure the bot, manage modules, and customize the settings for your servers.
                             </p>
                         </div>
                     </a>
 
                     <!-- User Profile Button -->
-                    <a href="${userProfileUrl}" class="bg-[#4dc7ed] hover:bg-[#aee8f7] text-black rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-2 flex-1 flex flex-col p-6 text-center">
+                    <a href="${userProfileUrl}" class="bg-[#105b42] hover:bg-[#1f9f73] text-white rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-2 flex-1 flex flex-col p-6 text-center">
                         <div class="flex-1 flex flex-col items-center justify-center">
-                            <img src="https://placehold.co/100x100/1a202c/e2e8f0?text=👤" alt="Profile Icon" class="h-24 w-24 mb-6 rounded-full">
+                            <img src="https://placehold.co/100x100/454545/e2e8f0?text=👤" alt="Profile Icon" class="h-24 w-24 mb-6 rounded-full">
                             <h2 class="text-3xl font-bold">User Profile</h2>
                         </div>
                         <div class="h-1/3 pt-6 border-t border-gray-700">
-                            <p class="text-gray-600">
+                            <p class="text-gray-300">
                                 View your network status, customize your profile, and manage your premium subscriptions.
                             </p>
                         </div>
