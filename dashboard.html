@@ -14,11 +14,13 @@
         }
         /* Custom styles for the toggle switch */
         .toggle-checkbox:checked {
+            @apply: right-0 border-green-400;
             right: 0;
-            border-color: #105b42;
+            border-color: #1f9f73;
         }
         .toggle-checkbox:checked + .toggle-label {
-            background-color: #105b42;
+            @apply: bg-green-400;
+            background-color: #1f9f73;
         }
     </style>
 </head>
@@ -49,9 +51,12 @@
 
         <div id="module-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Loading Skeletons -->
-            <div class="h-24 bg-gray-700 rounded-lg animate-pulse"></div>
-            <div class="h-24 bg-gray-700 rounded-lg animate-pulse"></div>
-            <div class="h-24 bg-gray-700 rounded-lg animate-pulse"></div>
+            <div class="h-28 bg-gray-700 rounded-lg animate-pulse"></div>
+            <div class="h-28 bg-gray-700 rounded-lg animate-pulse"></div>
+            <div class="h-28 bg-gray-700 rounded-lg animate-pulse"></div>
+            <div class="h-28 bg-gray-700 rounded-lg animate-pulse"></div>
+            <div class="h-28 bg-gray-700 rounded-lg animate-pulse"></div>
+            <div class="h-28 bg-gray-700 rounded-lg animate-pulse"></div>
         </div>
     </main>
 
@@ -69,6 +74,7 @@
         const serverIcon = document.getElementById('server-icon');
         const serverName = document.getElementById('server-name');
         const moduleListContainer = document.getElementById('module-list-container');
+        let serverId = '';
 
         // A helper object to give modules more descriptive names and descriptions
         const moduleDetails = {
@@ -93,8 +99,12 @@
         };
 
         document.addEventListener('DOMContentLoaded', async () => {
+            // Extract server ID from the URL path
+            const pathParts = window.location.pathname.split('/');
+            serverId = pathParts[pathParts.length - 1];
+
             await checkAuthStatus();
-            // We'll add the function to fetch server data here
+            await fetchServerData();
         });
 
         async function checkAuthStatus() {
@@ -119,7 +129,85 @@
             }
         }
         
-        // TODO: Add function to fetch server-specific data and render modules
+        async function fetchServerData() {
+            if (!serverId) {
+                serverName.textContent = 'Invalid Server ID';
+                return;
+            }
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/servers/${serverId}`, { credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to fetch server data.');
+
+                const data = await response.json();
+                
+                serverName.textContent = data.name;
+                serverIcon.src = data.icon || `https://placehold.co/64x64/6a6a6a/e2e8f0?text=${encodeURIComponent(data.name.slice(0, 2))}`;
+                
+                renderModules(data.modules);
+
+            } catch (error) {
+                console.error('Error fetching server data:', error);
+                serverName.textContent = 'Error';
+                moduleListContainer.innerHTML = `<p class="text-red-400">Could not load server configuration. You may not have permission to manage this server.</p>`;
+            }
+        }
+
+        function renderModules(modules) {
+            let moduleHTML = '';
+            for (const key in moduleDetails) {
+                const details = moduleDetails[key];
+                const isEnabled = modules[key] ? modules[key].enabled : false;
+
+                moduleHTML += `
+                    <div class="bg-[#6a6a6a] p-4 rounded-lg shadow-md flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold text-white">${details.name}</h3>
+                            <p class="text-sm text-gray-300">${details.description}</p>
+                        </div>
+                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="${key}" id="${key}-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" ${isEnabled ? 'checked' : ''}/>
+                            <label for="${key}-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-500 cursor-pointer"></label>
+                        </div>
+                    </div>
+                `;
+            }
+            moduleListContainer.innerHTML = moduleHTML;
+
+            // Add event listeners to all the new toggles
+            for (const key in moduleDetails) {
+                document.getElementById(`${key}-toggle`).addEventListener('change', handleToggleChange);
+            }
+        }
+
+        async function handleToggleChange(event) {
+            const moduleName = event.target.name;
+            const isEnabled = event.target.checked;
+            
+            // Disable the toggle temporarily to prevent spamming
+            event.target.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/servers/${serverId}/modules/${moduleName}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ enabled: isEnabled })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update module status.');
+                }
+                // Success! The backend has saved the new state.
+            } catch (error) {
+                console.error(`Error toggling ${moduleName}:`, error);
+                // If it fails, revert the checkbox to its previous state
+                event.target.checked = !isEnabled;
+                alert('Failed to update module. Please try again.');
+            } finally {
+                // Re-enable the toggle
+                event.target.disabled = false;
+            }
+        }
         
     </script>
 </body>
