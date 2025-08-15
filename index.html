@@ -7,13 +7,10 @@
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* A little extra style for a nice background and smooth transitions */
+        /* A little extra style for a nice background */
         body {
             background-color: #1a202c;
             color: #e2e8f0;
-        }
-        .btn {
-            @apply font-bold rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105;
         }
     </style>
 </head>
@@ -33,16 +30,12 @@
 
     <!-- MAIN CONTENT -->
     <main class="flex-grow container mx-auto px-6 flex flex-col">
-        <div id="main-content" class="w-full max-w-3xl mx-auto flex-grow flex flex-col">
+        <div id="main-content" class="w-full max-w-5xl mx-auto flex-grow flex flex-col">
             <!-- Loading Skeleton -->
-            <div class="space-y-6 flex-grow flex flex-col justify-center">
-                 <div class="h-10 bg-gray-700 rounded-lg w-3/4 mx-auto animate-pulse"></div>
-                 <div class="h-6 bg-gray-700 rounded-lg w-full mx-auto animate-pulse"></div>
-                 <div class="flex flex-col items-center space-y-6 pt-8">
-                     <div class="h-20 w-full bg-gray-700 rounded-lg animate-pulse"></div>
-                     <div class="h-20 w-full bg-gray-700 rounded-lg animate-pulse"></div>
-                     <div class="h-20 w-full bg-gray-700 rounded-lg animate-pulse"></div>
-                 </div>
+            <div class="flex-grow flex flex-col md:flex-row items-stretch justify-center space-y-6 md:space-y-0 md:space-x-6 py-8">
+                 <div class="flex-1 bg-gray-700 rounded-lg animate-pulse"></div>
+                 <div class="flex-1 bg-gray-700 rounded-lg animate-pulse"></div>
+                 <div class="flex-1 bg-gray-700 rounded-lg animate-pulse"></div>
             </div>
         </div>
     </main>
@@ -57,7 +50,10 @@
     <!-- JAVASCRIPT LOGIC -->
     <script>
         // Define the base URL for your production backend API
-        const API_BASE_URL = 'https://api.ulti-bot.com'; // Use your actual API domain
+        // *** FIX: Replace this placeholder with your ACTUAL Render backend URL ***
+        // The "Failed to fetch" error happens because this URL is not correct.
+        // Find your backend service URL in the Render dashboard (e.g., 'https://your-api-name.onrender.com').
+        const API_BASE_URL = 'https://REPLACE-WITH-YOUR-RENDER-BACKEND-URL.onrender.com'; 
 
         // Get references to the HTML elements we'll be manipulating
         const authContainer = document.getElementById('auth-container');
@@ -116,7 +112,7 @@
                     <div>
                         <h2 class="text-4xl font-bold mb-4 text-white">Verification Required</h2>
                         <p class="text-xl mb-8 text-gray-300">To access the Ulti-Bot network, you must first verify your identity. This is a one-time process to ensure the safety and security of our communities.</p>
-                        <button id="verify-button" class="btn bg-green-600 hover:bg-green-700 text-white py-6 text-2xl w-full max-w-md mx-auto">
+                        <button id="verify-button" class="bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105 py-6 text-2xl w-full max-w-md mx-auto">
                             Verify with Stripe
                         </button>
                         <p class="text-sm mt-4 text-gray-500">(This will redirect to Stripe Identity. We do not store your personal documents.)</p>
@@ -133,18 +129,19 @@
             const userProfileUrl = isLogin ? `${API_BASE_URL}/api/auth/discord/login` : '/profile.html';
 
             mainContent.innerHTML = `
-                <div class="text-center pt-16">
+                <div class="text-center pt-8 md:pt-12">
                     <h2 class="text-4xl font-bold mb-4 text-white">Welcome to the Ulti-Bot Network</h2>
                     <p class="text-xl mb-8 text-gray-300">Discover, manage, and engage with Discord communities like never before.</p>
                 </div>
-                <div class="flex-grow flex flex-col justify-center space-y-6 pb-16">
-                    <a href="${serverSearchUrl}" class="btn bg-blue-600 hover:bg-blue-700 text-white py-6 text-2xl">
+                <!-- This container will now be a row on medium screens and up, and will stretch its children to fill the vertical space -->
+                <div class="flex-grow flex flex-col md:flex-row justify-center items-stretch space-y-6 md:space-y-0 md:space-x-6 pb-8 md:pb-12">
+                    <a href="${serverSearchUrl}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105 flex-1 flex items-center justify-center text-3xl">
                         Server Search
                     </a>
-                    <a href="${serverManagementUrl}" class="btn bg-gray-700 hover:bg-gray-600 text-white py-6 text-2xl">
+                    <a href="${serverManagementUrl}" class="bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105 flex-1 flex items-center justify-center text-3xl">
                         Server Management
                     </a>
-                    <a href="${userProfileUrl}" class="btn bg-gray-700 hover:bg-gray-600 text-white py-6 text-2xl">
+                    <a href="${userProfileUrl}" class="bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105 flex-1 flex items-center justify-center text-3xl">
                         User Profile
                     </a>
                 </div>
@@ -153,8 +150,13 @@
 
         function renderErrorState() {
             mainContent.innerHTML = `
-                <h2 class="text-4xl font-bold mb-4 text-red-500">Connection Error</h2>
-                <p class="text-xl text-gray-300">Could not connect to the Ulti-Bot services. Please try again later.</p>
+                <div class="flex-grow flex items-center justify-center">
+                    <div class="text-center">
+                        <h2 class="text-4xl font-bold mb-4 text-red-500">Connection Error</h2>
+                        <p class="text-xl text-gray-300">Could not connect to the Ulti-Bot services. Please try again later.</p>
+                        <p class="text-sm mt-2 text-gray-500">Ensure the API URL is correct and the backend service is running.</p>
+                    </div>
+                </div>
             `;
         }
 
