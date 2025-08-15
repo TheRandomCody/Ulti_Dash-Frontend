@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Management - Ulti-Bot</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* A little extra style for a nice background */
+        body {
+            background-color: #454545;
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen font-sans">
+
+    <!-- TOP BAR -->
+    <header class="bg-[#6a6a6a] shadow-lg">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="/" class="flex items-center space-x-3">
+                <!-- You can add your logo here if you have one -->
+                <span class="text-2xl font-bold text-white">Ulti-Bot</span>
+            </a>
+            <!-- Login/Logout Button Area -->
+            <div id="auth-container">
+                <!-- This will be dynamically filled by JavaScript -->
+                <div class="h-10 w-48 bg-gray-700 rounded-lg animate-pulse"></div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-grow container mx-auto px-6 py-8">
+        <h1 class="text-4xl font-bold mb-6 text-white">Server Management</h1>
+        <div id="server-list-container">
+            <!-- Loading Skeleton -->
+            <div class="space-y-4">
+                <div class="h-20 bg-gray-700 rounded-lg animate-pulse"></div>
+                <div class="h-20 bg-gray-700 rounded-lg animate-pulse"></div>
+                <div class="h-20 bg-gray-700 rounded-lg animate-pulse"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- BOTTOM BAR -->
+    <footer class="bg-[#6a6a6a] text-gray-300 py-4">
+        <div class="container mx-auto px-6 text-center">
+            <p>Ulti-Bot &copy; 2025</p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const API_BASE_URL = 'https://api.ulti-bot.com'; 
+        const authContainer = document.getElementById('auth-container');
+        const serverListContainer = document.getElementById('server-list-container');
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuthStatus();
+            await fetchServers();
+        });
+
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users/me`, { credentials: 'include' });
+                if (response.ok) {
+                    const user = await response.json();
+                    authContainer.innerHTML = `
+                        <div class="flex items-center space-x-4">
+                            <span class="text-white hidden sm:inline">Welcome, ${user.username}</span>
+                            <a href="${API_BASE_URL}/api/auth/logout" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                                Logout
+                            </a>
+                        </div>
+                    `;
+                    // Redirect if not verified
+                    if (user.verificationStatus === 0) {
+                        window.location.href = '/';
+                    }
+                } else {
+                    // If not logged in, redirect to the homepage to log in
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                authContainer.innerHTML = `<p class="text-red-500">Could not verify login.</p>`;
+            }
+        }
+
+        async function fetchServers() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/servers/my-servers`, { credentials: 'include' });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        // Handle cases where the session might be expired
+                        window.location.href = '/';
+                        return;
+                    }
+                    throw new Error('Failed to fetch servers.');
+                }
+
+                const servers = await response.json();
+                renderServerList(servers);
+
+            } catch (error) {
+                console.error('Error fetching servers:', error);
+                serverListContainer.innerHTML = `<p class="text-red-400 text-center">Could not load your servers. Please try logging out and back in.</p>`;
+            }
+        }
+
+        function renderServerList(servers) {
+            if (servers.length === 0) {
+                serverListContainer.innerHTML = `<p class="text-center text-gray-400">You are not an administrator of any servers. If you've recently created a server, please log out and back in to refresh your list.</p>`;
+                return;
+            }
+
+            // Generate the HTML for each server
+            const serverListHTML = servers.map(server => {
+                const iconUrl = server.icon 
+                    ? server.icon 
+                    : `https://placehold.co/64x64/454545/e2e8f0?text=${server.name.charAt(0)}`;
+                
+                const manageButton = server.isManaged
+                    ? `<a href="/dashboard/${server.id}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Manage</a>`
+                    : `<a href="https://discord.com/api/oauth2/authorize?client_id=${'YOUR_CLIENT_ID_HERE'}&permissions=8&scope=bot%20applications.commands&guild_id=${server.id}&disable_guild_select=true" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Invite to Server</a>`;
+
+                return `
+                    <div class="bg-[#6a6a6a] rounded-lg p-4 flex items-center justify-between shadow-md">
+                        <div class="flex items-center space-x-4">
+                            <img src="${iconUrl}" alt="${server.name} icon" class="h-16 w-16 rounded-full">
+                            <span class="text-xl font-semibold text-white">${server.name}</span>
+                        </div>
+                        <div>
+                            ${manageButton}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            serverListContainer.innerHTML = `<div class="space-y-4">${serverListHTML}</div>`;
+        }
+    </script>
+</body>
+</html>
