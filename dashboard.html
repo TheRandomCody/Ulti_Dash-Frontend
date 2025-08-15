@@ -167,16 +167,16 @@
                 const moduleLink = `/${key}-module.html?id=${serverId}`;
                 
                 moduleHTML += `
-                    <a href="${moduleLink}" class="bg-[#105b42] hover:bg-[#1f9f73] p-4 rounded-lg shadow-lg flex items-center justify-between transition duration-300 ease-in-out transform hover:-translate-y-1 border-4 border-[#6a6a6a] shadow-[inset_0_0_0_2px_#000] ring-2 ring-black">
-                        <div class="flex-1">
-                            <h3 class="text-lg font-bold text-white">${details.name}</h3>
-                            <p class="text-sm text-gray-300">${details.description}</p>
-                        </div>
-                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                    <div class="bg-[#105b42] p-4 rounded-lg shadow-lg flex items-center justify-between border-4 border-[#6a6a6a] shadow-[inset_0_0_0_2px_#000] ring-2 ring-black">
+                        <a href="${moduleLink}" class="flex-1 group">
+                            <h3 class="text-lg font-bold text-white group-hover:text-[#aee8f7] transition-colors">${details.name}</h3>
+                            <p class="text-sm text-gray-300 group-hover:text-white transition-colors">${details.description}</p>
+                        </a>
+                        <div class="relative inline-block w-10 ml-4 align-middle select-none transition duration-200 ease-in">
                             <input type="checkbox" name="${key}" id="${key}-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" ${isEnabled ? 'checked' : ''}/>
                             <label for="${key}-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-red-600 cursor-pointer"></label>
                         </div>
-                    </a>
+                    </div>
                 `;
             });
             
@@ -184,16 +184,7 @@
 
             // Add event listeners to all the new toggles
             sortedModuleKeys.forEach(key => {
-                const linkElement = document.querySelector(`a[href="/${key}-module.html?id=${serverId}"]`);
                 const toggle = document.getElementById(`${key}-toggle`);
-
-                // Prevent the link from being followed when the toggle itself or its label is clicked
-                linkElement.addEventListener('click', (e) => {
-                    if (e.target === toggle || e.target === toggle.nextElementSibling) {
-                        e.preventDefault();
-                    }
-                });
-
                 toggle.addEventListener('change', handleToggleChange);
             });
         }
