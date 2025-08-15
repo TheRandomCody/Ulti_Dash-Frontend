@@ -153,7 +153,13 @@
 
         function renderModules(modules) {
             let moduleHTML = '';
-            for (const key in moduleDetails) {
+            
+            // Get the keys and sort them alphabetically based on the module's display name
+            const sortedModuleKeys = Object.keys(moduleDetails).sort((a, b) => {
+                return moduleDetails[a].name.localeCompare(moduleDetails[b].name);
+            });
+
+            sortedModuleKeys.forEach(key => {
                 const details = moduleDetails[key];
                 const isEnabled = modules[key] ? modules[key].enabled : false;
 
@@ -169,13 +175,14 @@
                         </div>
                     </div>
                 `;
-            }
+            });
+            
             moduleListContainer.innerHTML = moduleHTML;
 
             // Add event listeners to all the new toggles
-            for (const key in moduleDetails) {
+            sortedModuleKeys.forEach(key => {
                 document.getElementById(`${key}-toggle`).addEventListener('change', handleToggleChange);
-            }
+            });
         }
 
         async function handleToggleChange(event) {
