@@ -53,6 +53,7 @@
     <header class="bg-[#6a6a6a] shadow-lg">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="/" class="flex items-center space-x-3">
+                <!-- Ensure you have a logo.png file in an /images folder -->
                 <img src="/images/logo.png" alt="Ulti-Bot Logo" class="h-10 w-10">
                 <span class="text-2xl font-bold text-white">Ulti-Bot</span>
             </a>
@@ -255,12 +256,14 @@
                 serverRoles = data.roles.filter(role => !role.managed && role.name !== '@everyone');
 
                 const channelSelect = document.getElementById('levelUpChannel');
-                data.channels.forEach(channel => {
-                    const option = document.createElement('option');
-                    option.value = channel.id;
-                    option.textContent = `#${channel.name}`;
-                    channelSelect.appendChild(option);
-                });
+                if (channelSelect) {
+                    data.channels.forEach(channel => {
+                        const option = document.createElement('option');
+                        option.value = channel.id;
+                        option.textContent = `#${channel.name}`;
+                        channelSelect.appendChild(option);
+                    });
+                }
 
                 populateRoleSelects();
 
@@ -304,6 +307,8 @@
             const ignoredRoleSelect = document.getElementById('ignored-role-select');
             const newRewardRoleSelect = document.getElementById('new-reward-role');
             
+            if (!ignoredRoleSelect || !newRewardRoleSelect) return;
+
             ignoredRoleSelect.innerHTML = '<option value="">Select a role to ignore...</option>';
             newRewardRoleSelect.innerHTML = '<option value="">Select a role reward...</option>';
 
@@ -318,20 +323,22 @@
         }
 
         function populateForm(settings) {
-            document.getElementById('xpPerMessage').value = settings.xpPerMessage;
-            document.getElementById('xpCooldownSeconds').value = settings.xpCooldownSeconds;
-            document.getElementById('levelUpMessage').value = settings.levelUpMessage.content;
-            document.getElementById('levelUpChannel').value = settings.levelUpChannel;
-            document.getElementById('onWarn').value = settings.punishmentSettings.onWarn;
-            document.getElementById('onMute').value = settings.punishmentSettings.onMute;
-            document.getElementById('deductXpAmount').value = settings.punishmentSettings.deductXpAmount;
+            // Use optional chaining (?.) and nullish coalescing (??) for safety
+            document.getElementById('xpPerMessage').value = settings.xpPerMessage ?? 15;
+            document.getElementById('xpCooldownSeconds').value = settings.xpCooldownSeconds ?? 60;
+            document.getElementById('levelUpMessage').value = settings.levelUpMessage?.content ?? 'Congratulations {user}, you have reached level {level}!';
+            document.getElementById('levelUpChannel').value = settings.levelUpChannel ?? 'current';
+            document.getElementById('onWarn').value = settings.punishmentSettings?.onWarn ?? 'none';
+            document.getElementById('onMute').value = settings.punishmentSettings?.onMute ?? 'none';
+            document.getElementById('deductXpAmount').value = settings.punishmentSettings?.deductXpAmount ?? 500;
             
-            renderIgnoredRoles(settings.ignoredRoles);
-            renderRoleRewards(settings.roleRewards);
+            renderIgnoredRoles(settings.ignoredRoles ?? []);
+            renderRoleRewards(settings.roleRewards ?? []);
         }
 
         function renderIgnoredRoles(ignoredIds = []) {
             const list = document.getElementById('ignored-roles-list');
+            if (!list) return;
             list.innerHTML = '';
             ignoredIds.forEach(roleId => {
                 const role = serverRoles.find(r => r.id === roleId);
@@ -346,6 +353,7 @@
 
         function renderRoleRewards(rewards = []) {
             const list = document.getElementById('role-rewards-list');
+            if (!list) return;
             list.innerHTML = '';
             rewards.forEach(reward => {
                 const role = serverRoles.find(r => r.id === reward.roleId);
