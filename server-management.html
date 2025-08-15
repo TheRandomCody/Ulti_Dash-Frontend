@@ -116,6 +116,16 @@
                 return;
             }
 
+            // Sort the servers before rendering
+            servers.sort((a, b) => {
+                // Prioritize managed servers first (true comes before false)
+                if (a.isManaged !== b.isManaged) {
+                    return a.isManaged ? -1 : 1;
+                }
+                // Then, sort alphabetically by name
+                return a.name.localeCompare(b.name);
+            });
+
             const serverGridHTML = servers.map(server => {
                 const iconUrl = server.icon 
                     ? server.icon 
@@ -125,7 +135,7 @@
                 const actionUrl = isManaged
                     ? `/dashboard/${server.id}`
                     // Make sure to replace YOUR_CLIENT_ID_HERE with your actual bot's client ID
-                    : `https://discord.com/api/oauth2/authorize?client_id=${'1404710605243547770'}&permissions=8&scope=bot%20applications.commands&guild_id=${server.id}&disable_guild_select=true`;
+                    : `https://discord.com/api/oauth2/authorize?client_id=${'YOUR_CLIENT_ID_HERE'}&permissions=8&scope=bot%20applications.commands&guild_id=${server.id}&disable_guild_select=true`;
                 
                 const actionText = isManaged ? 'Manage Server' : 'Invite bot to server';
                 
