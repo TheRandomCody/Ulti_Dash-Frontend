@@ -13,7 +13,7 @@
             color: #e2e8f0;
         }
         .btn {
-            @apply font-bold py-3 px-8 rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105;
+            @apply font-bold rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105;
         }
     </style>
 </head>
@@ -32,17 +32,17 @@
     </header>
 
     <!-- MAIN CONTENT -->
-    <main class="flex-grow container mx-auto px-6 py-16 flex flex-col justify-center items-center text-center">
-        <div id="main-content" class="w-full max-w-3xl">
+    <main class="flex-grow container mx-auto px-6 flex flex-col">
+        <div id="main-content" class="w-full max-w-3xl mx-auto flex-grow flex flex-col">
             <!-- Loading Skeleton -->
-            <div class="space-y-6">
-                <div class="h-10 bg-gray-700 rounded-lg w-3/4 mx-auto animate-pulse"></div>
-                <div class="h-6 bg-gray-700 rounded-lg w-full mx-auto animate-pulse"></div>
-                <div class="flex justify-center items-center space-x-6 pt-4">
-                    <div class="h-14 w-48 bg-gray-700 rounded-lg animate-pulse"></div>
-                    <div class="h-14 w-48 bg-gray-700 rounded-lg animate-pulse"></div>
-                    <div class="h-14 w-48 bg-gray-700 rounded-lg animate-pulse"></div>
-                </div>
+            <div class="space-y-6 flex-grow flex flex-col justify-center">
+                 <div class="h-10 bg-gray-700 rounded-lg w-3/4 mx-auto animate-pulse"></div>
+                 <div class="h-6 bg-gray-700 rounded-lg w-full mx-auto animate-pulse"></div>
+                 <div class="flex flex-col items-center space-y-6 pt-8">
+                     <div class="h-20 w-full bg-gray-700 rounded-lg animate-pulse"></div>
+                     <div class="h-20 w-full bg-gray-700 rounded-lg animate-pulse"></div>
+                     <div class="h-20 w-full bg-gray-700 rounded-lg animate-pulse"></div>
+                 </div>
             </div>
         </div>
     </main>
@@ -112,12 +112,16 @@
 
         function renderVerificationNeededState() {
             mainContent.innerHTML = `
-                <h2 class="text-4xl font-bold mb-4 text-white">Verification Required</h2>
-                <p class="text-xl mb-8 text-gray-300">To access the Ulti-Bot network, you must first verify your identity. This is a one-time process to ensure the safety and security of our communities.</p>
-                <button id="verify-button" class="btn bg-green-600 hover:bg-green-700 text-white">
-                    Verify with Stripe
-                </button>
-                <p class="text-sm mt-4 text-gray-500">(This will redirect to Stripe Identity. We do not store your personal documents.)</p>
+                <div class="flex-grow flex flex-col justify-center text-center">
+                    <div>
+                        <h2 class="text-4xl font-bold mb-4 text-white">Verification Required</h2>
+                        <p class="text-xl mb-8 text-gray-300">To access the Ulti-Bot network, you must first verify your identity. This is a one-time process to ensure the safety and security of our communities.</p>
+                        <button id="verify-button" class="btn bg-green-600 hover:bg-green-700 text-white py-6 text-2xl w-full max-w-md mx-auto">
+                            Verify with Stripe
+                        </button>
+                        <p class="text-sm mt-4 text-gray-500">(This will redirect to Stripe Identity. We do not store your personal documents.)</p>
+                    </div>
+                </div>
             `;
             // Add an event listener to the new button
             document.getElementById('verify-button').addEventListener('click', handleVerification);
@@ -129,16 +133,18 @@
             const userProfileUrl = isLogin ? `${API_BASE_URL}/api/auth/discord/login` : '/profile.html';
 
             mainContent.innerHTML = `
-                <h2 class="text-4xl font-bold mb-4 text-white">Welcome to the Ulti-Bot Network</h2>
-                <p class="text-xl mb-8 text-gray-300">Discover, manage, and engage with Discord communities like never before.</p>
-                <div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-6">
-                    <a href="${serverSearchUrl}" class="btn bg-blue-600 hover:bg-blue-700 text-white">
+                <div class="text-center pt-16">
+                    <h2 class="text-4xl font-bold mb-4 text-white">Welcome to the Ulti-Bot Network</h2>
+                    <p class="text-xl mb-8 text-gray-300">Discover, manage, and engage with Discord communities like never before.</p>
+                </div>
+                <div class="flex-grow flex flex-col justify-center space-y-6 pb-16">
+                    <a href="${serverSearchUrl}" class="btn bg-blue-600 hover:bg-blue-700 text-white py-6 text-2xl">
                         Server Search
                     </a>
-                    <a href="${serverManagementUrl}" class="btn bg-gray-700 hover:bg-gray-600 text-white">
+                    <a href="${serverManagementUrl}" class="btn bg-gray-700 hover:bg-gray-600 text-white py-6 text-2xl">
                         Server Management
                     </a>
-                    <a href="${userProfileUrl}" class="btn bg-gray-700 hover:bg-gray-600 text-white">
+                    <a href="${userProfileUrl}" class="btn bg-gray-700 hover:bg-gray-600 text-white py-6 text-2xl">
                         User Profile
                     </a>
                 </div>
