@@ -20,12 +20,11 @@
     <header class="bg-[#6a6a6a] shadow-lg">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="/" class="flex items-center space-x-3">
-                <!-- You can add your logo here if you have one -->
+                <img src="/images/logo.png" alt="Ulti-Bot Logo" class="h-10 w-10">
                 <span class="text-2xl font-bold text-white">Ulti-Bot</span>
             </a>
             <!-- Login/Logout Button Area -->
             <div id="auth-container">
-                <!-- This will be dynamically filled by JavaScript -->
                 <div class="h-10 w-48 bg-gray-700 rounded-lg animate-pulse"></div>
             </div>
         </nav>
@@ -33,13 +32,14 @@
 
     <!-- MAIN CONTENT -->
     <main class="flex-grow container mx-auto px-6 py-8">
-        <h1 class="text-4xl font-bold mb-6 text-white">Server Management</h1>
+        <h1 class="text-4xl font-bold mb-8 text-white">Server Management</h1>
         <div id="server-list-container">
-            <!-- Loading Skeleton -->
-            <div class="space-y-4">
-                <div class="h-20 bg-gray-700 rounded-lg animate-pulse"></div>
-                <div class="h-20 bg-gray-700 rounded-lg animate-pulse"></div>
-                <div class="h-20 bg-gray-700 rounded-lg animate-pulse"></div>
+            <!-- Loading Skeleton Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div class="h-48 bg-gray-700 rounded-lg animate-pulse"></div>
+                <div class="h-48 bg-gray-700 rounded-lg animate-pulse"></div>
+                <div class="h-48 bg-gray-700 rounded-lg animate-pulse"></div>
+                <div class="h-48 bg-gray-700 rounded-lg animate-pulse"></div>
             </div>
         </div>
     </main>
@@ -95,7 +95,6 @@
 
                 if (!response.ok) {
                     if (response.status === 401) {
-                        // Handle cases where the session might be expired
                         window.location.href = '/';
                         return;
                     }
@@ -103,7 +102,7 @@
                 }
 
                 const servers = await response.json();
-                renderServerList(servers);
+                renderServerGrid(servers);
 
             } catch (error) {
                 console.error('Error fetching servers:', error);
@@ -111,36 +110,37 @@
             }
         }
 
-        function renderServerList(servers) {
+        function renderServerGrid(servers) {
             if (servers.length === 0) {
                 serverListContainer.innerHTML = `<p class="text-center text-gray-400">You are not an administrator of any servers. If you've recently created a server, please log out and back in to refresh your list.</p>`;
                 return;
             }
 
-            // Generate the HTML for each server
-            const serverListHTML = servers.map(server => {
+            const serverGridHTML = servers.map(server => {
                 const iconUrl = server.icon 
                     ? server.icon 
-                    : `https://placehold.co/64x64/454545/e2e8f0?text=${server.name.charAt(0)}`;
+                    : `https://placehold.co/128x128/6a6a6a/e2e8f0?text=${encodeURIComponent(server.name.slice(0, 2))}`;
                 
-                const manageButton = server.isManaged
-                    ? `<a href="/dashboard/${server.id}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Manage</a>`
-                    : `<a href="https://discord.com/api/oauth2/authorize?client_id=${'1404710605243547770'}&permissions=8&scope=bot%20applications.commands&guild_id=${server.id}&disable_guild_select=true" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Invite to Server</a>`;
+                const actionButton = server.isManaged
+                    ? `<a href="/dashboard/${server.id}" class="w-full mt-4 bg-[#105b42] hover:bg-[#1f9f73] text-white font-bold py-2 px-4 rounded-lg transition duration-300 text-center">Manage</a>`
+                    : `<a href="https://discord.com/api/oauth2/authorize?client_id=${'YOUR_CLIENT_ID_HERE'}&permissions=8&scope=bot%20applications.commands&guild_id=${server.id}&disable_guild_select=true" target="_blank" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 text-center">Invite Bot</a>`;
 
                 return `
-                    <div class="bg-[#6a6a6a] rounded-lg p-4 flex items-center justify-between shadow-md">
-                        <div class="flex items-center space-x-4">
-                            <img src="${iconUrl}" alt="${server.name} icon" class="h-16 w-16 rounded-full">
-                            <span class="text-xl font-semibold text-white">${server.name}</span>
-                        </div>
-                        <div>
-                            ${manageButton}
+                    <div class="bg-[#6a6a6a] rounded-lg p-4 flex flex-col items-center justify-between shadow-lg transform hover:-translate-y-1 transition-transform duration-300">
+                        <img src="${iconUrl}" alt="${server.name} icon" class="h-24 w-24 rounded-full mb-4">
+                        <h2 class="text-lg font-semibold text-white text-center truncate w-full">${server.name}</h2>
+                        <div class="w-full">
+                            ${actionButton}
                         </div>
                     </div>
                 `;
             }).join('');
 
-            serverListContainer.innerHTML = `<div class="space-y-4">${serverListHTML}</div>`;
+            serverListContainer.innerHTML = `
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    ${serverGridHTML}
+                </div>
+            `;
         }
     </script>
 </body>
