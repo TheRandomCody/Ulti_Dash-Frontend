@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leveling Module - Ulti-Bot</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* A little extra style for a nice background */
+        body {
+            background-color: #454545;
+            color: #e2e8f0;
+        }
+        /* Custom styles for form elements */
+        .form-input {
+            background-color: #2d3748;
+            border: 1px solid #4a5568;
+            color: #e2e8f0;
+        }
+        .form-label {
+            color: #a0aec0;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen font-sans">
+
+    <!-- TOP BAR -->
+    <header class="bg-[#6a6a6a] shadow-lg">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="/" class="flex items-center space-x-3">
+                <img src="/images/logo.png" alt="Ulti-Bot Logo" class="h-10 w-10">
+                <span class="text-2xl font-bold text-white">Ulti-Bot</span>
+            </a>
+            <!-- Login/Logout Button Area -->
+            <div id="auth-container">
+                <div class="h-10 w-48 bg-gray-700 rounded-lg animate-pulse"></div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-grow container mx-auto px-6 py-8">
+        <div class="flex items-center mb-8">
+            <a href="#" id="back-to-dashboard" class="text-blue-400 hover:text-blue-300 mr-4">&larr; Back to Dashboard</a>
+        </div>
+        
+        <h1 class="text-4xl font-bold text-white mb-8">Leveling Module Settings</h1>
+
+        <div id="settings-form" class="space-y-8">
+            <!-- General Settings -->
+            <div class="bg-[#6a6a6a] p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 text-white">General Settings</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="xpPerMessage" class="form-label block mb-2">XP Per Message</label>
+                        <input type="number" id="xpPerMessage" class="form-input w-full p-2 rounded">
+                    </div>
+                    <div>
+                        <label for="xpCooldownSeconds" class="form-label block mb-2">XP Cooldown (seconds)</label>
+                        <input type="number" id="xpCooldownSeconds" class="form-input w-full p-2 rounded">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Level Up Message -->
+            <div class="bg-[#6a6a6a] p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 text-white">Level Up Message</h2>
+                <div>
+                    <label for="levelUpMessage" class="form-label block mb-2">Message Content</label>
+                    <textarea id="levelUpMessage" rows="3" class="form-input w-full p-2 rounded" placeholder="Congratulations {user}, you have reached level {level}!"></textarea>
+                    <p class="text-sm text-gray-400 mt-2">Use {user} for the user's name and {level} for their new level.</p>
+                </div>
+                 <div class="mt-4">
+                    <label for="levelUpChannel" class="form-label block mb-2">Send Message In</label>
+                    <select id="levelUpChannel" class="form-input w-full p-2 rounded">
+                        <option value="current">Current Channel</option>
+                        <!-- Channels will be populated by JavaScript -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- Ignored Roles & Role Rewards -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-[#6a6a6a] p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-semibold mb-4 text-white">Ignored Roles</h2>
+                    <p class="text-gray-400">Users with these roles will not gain XP.</p>
+                    <!-- Ignored roles list will be populated here -->
+                </div>
+                <div class="bg-[#6a6a6a] p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-semibold mb-4 text-white">Role Rewards</h2>
+                    <p class="text-gray-400">Assign roles to users when they reach a certain level.</p>
+                    <!-- Role rewards list will be populated here -->
+                </div>
+            </div>
+            
+            <div class="flex justify-end">
+                <button id="save-button" class="bg-[#105b42] hover:bg-[#1f9f73] text-white font-bold py-2 px-6 rounded-lg transition duration-300">
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- BOTTOM BAR -->
+    <footer class="bg-[#6a6a6a] text-gray-300 py-4">
+        <div class="container mx-auto px-6 text-center">
+            <p>Ulti-Bot &copy; 2025</p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const API_BASE_URL = 'https://api.ulti-bot.com'; 
+        const authContainer = document.getElementById('auth-container');
+        const backToDashboardLink = document.getElementById('back-to-dashboard');
+        const settingsForm = document.getElementById('settings-form');
+        const saveButton = document.getElementById('save-button');
+        let serverId = '';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            serverId = params.get('id');
+            backToDashboardLink.href = `/dashboard.html?id=${serverId}`;
+
+            await checkAuthStatus();
+            await fetchLevelingSettings();
+        });
+
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users/me`, { credentials: 'include' });
+                if (response.ok) {
+                    const user = await response.json();
+                    authContainer.innerHTML = `
+                        <div class="flex items-center space-x-4">
+                            <span class="text-white hidden sm:inline">Welcome, ${user.username}</span>
+                            <a href="${API_BASE_URL}/api/auth/logout" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                                Logout
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+            }
+        }
+        
+        async function fetchLevelingSettings() {
+            if (!serverId) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/servers/${serverId}/modules/leveling`, { credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to fetch settings.');
+                const settings = await response.json();
+                populateForm(settings);
+            } catch (error) {
+                console.error('Error fetching settings:', error);
+                settingsForm.innerHTML = `<p class="text-red-400">Could not load leveling settings.</p>`;
+            }
+        }
+
+        function populateForm(settings) {
+            document.getElementById('xpPerMessage').value = settings.xpPerMessage || 15;
+            document.getElementById('xpCooldownSeconds').value = settings.xpCooldownSeconds || 60;
+            document.getElementById('levelUpMessage').value = settings.levelUpMessage || 'Congratulations {user}, you have reached level {level}!';
+            document.getElementById('levelUpChannel').value = settings.levelUpChannel || 'current';
+            // TODO: Populate ignored roles and role rewards
+        }
+
+        saveButton.addEventListener('click', async () => {
+            saveButton.textContent = 'Saving...';
+            saveButton.disabled = true;
+
+            const settingsToSave = {
+                xpPerMessage: parseInt(document.getElementById('xpPerMessage').value),
+                xpCooldownSeconds: parseInt(document.getElementById('xpCooldownSeconds').value),
+                levelUpMessage: document.getElementById('levelUpMessage').value,
+                levelUpChannel: document.getElementById('levelUpChannel').value,
+                // TODO: Save ignored roles and role rewards
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/servers/${serverId}/modules/leveling`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(settingsToSave)
+                });
+
+                if (!response.ok) throw new Error('Failed to save settings.');
+                
+                saveButton.textContent = 'Saved!';
+                setTimeout(() => { saveButton.textContent = 'Save Changes'; }, 2000);
+
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                alert('Failed to save settings. Please try again.');
+                saveButton.textContent = 'Save Changes';
+            } finally {
+                saveButton.disabled = false;
+            }
+        });
+        
+    </script>
+</body>
+</html>
