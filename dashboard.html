@@ -97,9 +97,9 @@
         };
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // Extract server ID from the URL path
-            const pathParts = window.location.pathname.split('/');
-            serverId = pathParts[pathParts.length - 1];
+            // UPDATED: Extract server ID from the URL query parameter
+            const params = new URLSearchParams(window.location.search);
+            serverId = params.get('id');
 
             await checkAuthStatus();
             await fetchServerData();
@@ -130,6 +130,7 @@
         async function fetchServerData() {
             if (!serverId) {
                 serverName.textContent = 'Invalid Server ID';
+                moduleListContainer.innerHTML = `<p class="text-red-400">No server ID was found in the URL.</p>`;
                 return;
             }
             try {
