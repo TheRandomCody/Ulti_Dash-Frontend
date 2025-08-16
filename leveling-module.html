@@ -452,15 +452,19 @@
             saveButton.textContent = 'Saving...';
             saveButton.disabled = true;
 
+            const getIntValue = (id, defaultValue) => {
+                const value = parseInt(document.getElementById(id).value);
+                return isNaN(value) ? defaultValue : value;
+            };
+
             const ignoredRoles = Array.from(document.querySelectorAll('#ignored-roles-list .list-item')).map(item => item.dataset.roleId);
             const roleRewards = getRoleRewardsFromDOM();
 
             const settingsToSave = {
-                xpPerMessage: parseInt(document.getElementById('xpPerMessage').value),
-                xpCooldownSeconds: parseInt(document.getElementById('xpCooldownSeconds').value),
+                xpPerMessage: getIntValue('xpPerMessage', 15),
+                xpCooldownSeconds: getIntValue('xpCooldownSeconds', 60),
                 levelUpMessage: {
                     content: document.getElementById('levelUpMessage').value,
-                    // TODO: Add embed fields here
                 },
                 levelUpChannel: document.getElementById('levelUpChannel').value,
                 ignoredRoles: ignoredRoles,
@@ -468,7 +472,7 @@
                 punishmentSettings: {
                     onWarn: document.getElementById('onWarn').value,
                     onMute: document.getElementById('onMute').value,
-                    deductXpAmount: parseInt(document.getElementById('deductXpAmount').value)
+                    deductXpAmount: getIntValue('deductXpAmount', 500)
                 }
             };
 
