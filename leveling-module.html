@@ -45,6 +45,14 @@
             border-radius: 0.5rem;
             border: 1px solid #4a5568;
         }
+        /* Custom styles for the toggle switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #1f9f73;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #1f9f73;
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen font-sans">
@@ -53,7 +61,6 @@
     <header class="bg-[#6a6a6a] shadow-lg">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="/" class="flex items-center space-x-3">
-                <!-- Ensure you have a logo.png file in an /images folder -->
                 <img src="/images/logo.png" alt="Ulti-Bot Logo" class="h-10 w-10">
                 <span class="text-2xl font-bold text-white">Ulti-Bot</span>
             </a>
@@ -93,12 +100,42 @@
                 <!-- Level Up Message -->
                 <div class="settings-card">
                     <h2 class="text-2xl font-semibold mb-4 text-white">Level Up Message</h2>
-                    <!-- Embed Toggle Here -->
-                    <div>
-                        <label for="levelUpMessage" class="form-label block mb-2">Message Content</label>
-                        <textarea id="levelUpMessage" rows="3" class="form-textarea w-full" placeholder="Congratulations {user}, you have reached level {level}!"></textarea>
-                        <p class="text-sm text-gray-400 mt-2">Use {user} for the user's name and {level} for their new level.</p>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <label for="isEmbed" class="form-label">Use Embed Message</label>
+                        <div class="relative inline-block w-10 align-middle select-none">
+                            <input type="checkbox" id="isEmbed" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="isEmbed" class="toggle-label block overflow-hidden h-6 rounded-full bg-red-600 cursor-pointer"></label>
+                        </div>
                     </div>
+
+                    <div id="plain-text-message-group">
+                        <label for="levelUpMessageContent" class="form-label block mb-2">Message Content</label>
+                        <textarea id="levelUpMessageContent" rows="3" class="form-textarea w-full" placeholder="Congratulations {user}, you have reached level {level}!"></textarea>
+                    </div>
+
+                    <div id="embed-builder-group" class="hidden space-y-4">
+                        <div>
+                            <label for="embedTitle" class="form-label block mb-2">Embed Title</label>
+                            <input type="text" id="embedTitle" class="form-input w-full">
+                        </div>
+                        <div>
+                            <label for="embedDescription" class="form-label block mb-2">Embed Description</label>
+                            <textarea id="embedDescription" rows="4" class="form-textarea w-full"></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="embedColor" class="form-label block mb-2">Embed Color</label>
+                                <input type="color" id="embedColor" class="form-input w-full p-1 h-10">
+                            </div>
+                            <div>
+                                <label for="embedImageUrl" class="form-label block mb-2">Embed Image URL</label>
+                                <input type="text" id="embedImageUrl" class="form-input w-full">
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-400 mt-2">Use {user} for the user's name and {level} for their new level in all text fields.</p>
+
                      <div class="mt-4">
                         <label for="levelUpChannel" class="form-label block mb-2">Send Message In</label>
                         <select id="levelUpChannel" class="form-select w-full">
@@ -323,15 +360,23 @@
         }
 
         function populateForm(settings) {
-            // Use optional chaining (?.) and nullish coalescing (??) for safety
             document.getElementById('xpPerMessage').value = settings.xpPerMessage ?? 15;
             document.getElementById('xpCooldownSeconds').value = settings.xpCooldownSeconds ?? 60;
-            document.getElementById('levelUpMessage').value = settings.levelUpMessage?.content ?? 'Congratulations {user}, you have reached level {level}!';
             document.getElementById('levelUpChannel').value = settings.levelUpChannel ?? 'current';
             document.getElementById('onWarn').value = settings.punishmentSettings?.onWarn ?? 'none';
             document.getElementById('onMute').value = settings.punishmentSettings?.onMute ?? 'none';
             document.getElementById('deductXpAmount').value = settings.punishmentSettings?.deductXpAmount ?? 500;
             
+            // Populate embed builder
+            const isEmbedToggle = document.getElementById('isEmbed');
+            isEmbedToggle.checked = settings.levelUpMessage?.isEmbed ?? false;
+            document.getElementById('levelUpMessageContent').value = settings.levelUpMessage?.content ?? 'Congratulations {user}, you have reached level {level}!';
+            document.getElementById('embedTitle').value = settings.levelUpMessage?.embed?.title ?? '';
+            document.getElementById('embedDescription').value = settings.levelUpMessage?.embed?.description ?? '';
+            document.getElementById('embedColor').value = settings.levelUpMessage?.embed?.color ?? '#000000';
+            document.getElementById('embedImageUrl').value = settings.levelUpMessage?.embed?.imageUrl ?? '';
+            toggleEmbedBuilder(isEmbedToggle.checked);
+
             renderIgnoredRoles(settings.ignoredRoles ?? []);
             renderRoleRewards(settings.roleRewards ?? []);
         }
@@ -368,6 +413,15 @@
         }
 
         // --- Event Listeners for Dynamic Elements ---
+        document.getElementById('isEmbed').addEventListener('change', (e) => {
+            toggleEmbedBuilder(e.target.checked);
+        });
+
+        function toggleEmbedBuilder(isEmbed) {
+            document.getElementById('plain-text-message-group').style.display = isEmbed ? 'none' : 'block';
+            document.getElementById('embed-builder-group').style.display = isEmbed ? 'block' : 'none';
+        }
+
         document.getElementById('add-ignored-role-btn').addEventListener('click', () => {
             const select = document.getElementById('ignored-role-select');
             const roleId = select.value;
@@ -413,7 +467,6 @@
                     if (!response.ok) throw new Error('Failed to create role.');
                     const newRole = await response.json();
                     roleId = newRole.id;
-                    // Refresh server data to include the new role
                     await fetchServerData();
                 } catch (error) {
                     alert(error.message);
@@ -464,7 +517,14 @@
                 xpPerMessage: getIntValue('xpPerMessage', 15),
                 xpCooldownSeconds: getIntValue('xpCooldownSeconds', 60),
                 levelUpMessage: {
-                    content: document.getElementById('levelUpMessage').value,
+                    isEmbed: document.getElementById('isEmbed').checked,
+                    content: document.getElementById('levelUpMessageContent').value,
+                    embed: {
+                        title: document.getElementById('embedTitle').value,
+                        description: document.getElementById('embedDescription').value,
+                        color: document.getElementById('embedColor').value,
+                        imageUrl: document.getElementById('embedImageUrl').value
+                    }
                 },
                 levelUpChannel: document.getElementById('levelUpChannel').value,
                 ignoredRoles: ignoredRoles,
